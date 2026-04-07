@@ -4,9 +4,6 @@ SunApp is a beautifully designed, fast, and privacy-first web application that c
 
 **Live site:** [sun.stormberry.as](http://sun.stormberry.as/)
 
-![SunApp Preview](https://via.placeholder.com/1200x600.png?text=SunApp+Preview)  
-*(Add a real screenshot of the application here eventually)*
-
 ## 🎯 Goals
 - **Precision:** Deliver astronomically accurate sun times without heavy backend servers.
 - **Privacy First:** No cookies, no tracking. Calculations are largely done client-side.
