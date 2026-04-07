@@ -407,19 +407,20 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 .city-missing-note {
   font-size: 0.75rem;
   color: var(--text-muted);
+  opacity: 0.7;
   margin-top: var(--sp-xs);
   text-align: right;
 }
 
 .city-missing-note a {
-  color: var(--accent-blue);
-  text-decoration: none;
+  color: #ffffff;
+  text-decoration: underline;
+  text-underline-offset: 2px;
   transition: color var(--t-fast);
 }
 
 .city-missing-note a:hover {
   color: var(--accent-gold);
-  text-decoration: underline;
 }
 /* ── DEVICE PANEL ───────────────────────────────────────────── */
 .device-panel {
