@@ -120,6 +120,26 @@ for c in all_cities_sorted:
                 add_city(c)
                 us_state_city_count[state] = count + 1
 
+# 5. User-requested additional cities
+extra_manual_cities = [
+    {'name': 'Askøy', 'country': 'Norway', 'lat': 60.4430, 'lon': 5.1524, 'tz': 'Europe/Oslo'},
+    {'name': 'Kleppestø', 'country': 'Norway', 'lat': 60.4079, 'lon': 5.2341, 'tz': 'Europe/Oslo'},
+    {'name': 'Molde', 'country': 'Norway', 'lat': 62.7372, 'lon': 7.1599, 'tz': 'Europe/Oslo'},
+    {'name': 'Coventry', 'country': 'UK', 'lat': 52.4068, 'lon': -1.5197, 'tz': 'Europe/London'},
+    {'name': 'Nova Friburgo, RJ', 'country': 'Brazil', 'lat': -22.2858, 'lon': -42.5332, 'tz': 'America/Sao_Paulo'},
+    {'name': 'Teresópolis, RJ', 'country': 'Brazil', 'lat': -22.4121, 'lon': -42.9667, 'tz': 'America/Sao_Paulo'},
+    {'name': 'Petrópolis, RJ', 'country': 'Brazil', 'lat': -22.5050, 'lon': -43.1786, 'tz': 'America/Sao_Paulo'},
+    {'name': 'Macaé, RJ', 'country': 'Brazil', 'lat': -22.3708, 'lon': -41.7869, 'tz': 'America/Sao_Paulo'},
+    {'name': 'Niterói, RJ', 'country': 'Brazil', 'lat': -22.8833, 'lon': -43.1036, 'tz': 'America/Sao_Paulo'},
+    {'name': 'Imperatriz, MA', 'country': 'Brazil', 'lat': -5.5262, 'lon': -47.4682, 'tz': 'America/Fortaleza'},
+]
+for ec in extra_manual_cities:
+    # Filter duplicate coordinates explicitly
+    coord_key = (round(ec['lat'], 3), round(ec['lon'], 3))
+    if coord_key not in seen_coords:
+        seen_coords.add(coord_key)
+        final_cities.append(ec)
+
 # Sort final cities alphabetically by Country then City
 final_cities.sort(key=lambda x: (x['country'], x['name']))
 

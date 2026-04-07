@@ -404,6 +404,23 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 
 .clear-btn:hover { color: var(--accent-rose); }
 
+.city-missing-note {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-top: var(--sp-xs);
+  text-align: right;
+}
+
+.city-missing-note a {
+  color: var(--accent-blue);
+  text-decoration: none;
+  transition: color var(--t-fast);
+}
+
+.city-missing-note a:hover {
+  color: var(--accent-gold);
+  text-decoration: underline;
+}
 /* ── DEVICE PANEL ───────────────────────────────────────────── */
 .device-panel {
   display: flex;
