@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- SEO -->
+  <title>SunApp — Sunrise, Solar Noon & Sunset Calculator</title>
+  <meta name="description" content="Calculate precise sunrise, solar noon, and sunset times for any location on Earth. Fully timezone-aware, handles Polar Night and Midnight Sun edge cases." />
+
+  <!-- Local Fonts: Inter -->
+  <link rel="stylesheet" href="fonts/inter/inter.css" />
+
+  <!-- SunCalc library — local copy, no CDN dependency -->
+  <script src="suncalc.js"></script>
+
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- ============================================================
+       HEADER / HERO
+  ============================================================ -->
+  <header class="site-header">
+    <div class="header-glow"></div>
+    <div class="header-content">
+      <!-- Sun icon SVG (inline to avoid external dependency) -->
+      <div class="sun-icon" aria-hidden="true">
+        <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="32" cy="32" r="14" fill="url(#sunGrad)" />
+          <!-- Rays -->
+          <g stroke="url(#rayGrad)" stroke-width="3" stroke-linecap="round">
+            <line x1="32" y1="4"  x2="32" y2="12"/>
+            <line x1="32" y1="52" x2="32" y2="60"/>
+            <line x1="4"  y1="32" x2="12" y2="32"/>
+            <line x1="52" y1="32" x2="60" y2="32"/>
+            <line x1="11.5" y1="11.5" x2="17.6" y2="17.6"/>
+            <line x1="46.4" y1="46.4" x2="52.5" y2="52.5"/>
+            <line x1="52.5" y1="11.5" x2="46.4" y2="17.6"/>
+            <line x1="17.6" y1="46.4" x2="11.5" y2="52.5"/>
+          </g>
+          <defs>
+            <radialGradient id="sunGrad" cx="40%" cy="35%" r="65%">
+              <stop offset="0%"   stop-color="#fff7a1"/>
+              <stop offset="60%"  stop-color="#ffb347"/>
+              <stop offset="100%" stop-color="#ff6b35"/>
+            </radialGradient>
+            <linearGradient id="rayGrad" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%"   stop-color="#ffd700"/>
+              <stop offset="100%" stop-color="#ff8c42"/>
+            </linearGradient>
+          </defs>
+        </svg>
+      </div>
+
+      <div class="header-text">
+        <h1>SunApp</h1>
+        <p class="tagline">SUNRISE · SOLAR NOON · SUNSET<br>anywhere on Earth</p>
+      </div>
+    </div>
+  </header>
+
+  <!-- ============================================================
+       MAIN CONTENT
+  ============================================================ -->
+  <main class="main-container">
+
+    <!-- ---- INPUT CARD ---- -->
+    <section class="card input-card" aria-label="Location and date inputs">
+
+      <!-- TAB SWITCHER: Choose how you specify location -->
+      <div class="tab-group" role="tablist" aria-label="Location input method">
+        <button id="tab-city"   class="tab active" role="tab" aria-selected="true"  aria-controls="panel-city"   data-tab="city">
+          <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path d="M10 2a6 6 0 00-6 6c0 4.5 6 10 6 10s6-5.5 6-10a6 6 0 00-6-6zm0 8a2 2 0 110-4 2 2 0 010 4z"/></svg>
+          City Search
+        </button>
+        <button id="tab-gps"    class="tab" role="tab" aria-selected="false" aria-controls="panel-gps"    data-tab="gps">
+          <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path d="M10 18a8 8 0 100-16 8 8 0 000 16zm0-2a6 6 0 110-12 6 6 0 010 12zm0-9a3 3 0 100 6 3 3 0 000-6z"/></svg>
+          GPS Coords
+        </button>
+        <button id="tab-device" class="tab" role="tab" aria-selected="false" aria-controls="panel-device" data-tab="device">
+          <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path d="M7 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-2V3a1 1 0 00-1-1H7zm0 2h6v1H7V4zM4 8h12v8H4V8zm6 1a1 1 0 110 2 1 1 0 010-2z"/></svg>
+          My Device
+        </button>
+      </div>
+
+      <!-- Panel: City Search -->
+      <div id="panel-city" class="tab-panel active" role="tabpanel" aria-labelledby="tab-city">
+        <div class="field-group">
+          <label for="city-search">Search city or country</label>
+          <div class="search-wrapper">
+            <!-- Magnifying glass icon -->
+            <svg class="search-icon" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+              <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd"/>
+            </svg>
+            <input
+              type="search"
+              id="city-search"
+              class="search-input"
+              placeholder="e.g. Oslo, Tokyo, São Paulo…"
+              autocomplete="off"
+              spellcheck="false"
+              aria-autocomplete="list"
+              aria-controls="city-dropdown"
+              aria-expanded="false"
+            />
+            <!-- Dropdown list populated by JS -->
+            <ul id="city-dropdown" class="dropdown" role="listbox" aria-label="City suggestions" hidden></ul>
+          </div>
+          <!-- Shows the currently selected city -->
+          <div id="city-selected" class="selected-city" hidden>
+            <span id="city-selected-text"></span>
+            <button id="city-clear-btn" class="clear-btn" aria-label="Clear city selection">×</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Panel: Manual GPS -->
+      <div id="panel-gps" class="tab-panel" role="tabpanel" aria-labelledby="tab-gps" hidden>
+        <div class="field-row">
+          <div class="field-group">
+            <label for="lat-input">Latitude (−90 to 90)</label>
+            <input type="number" id="lat-input" class="text-input" placeholder="59.9139" min="-90" max="90" step="any" />
+          </div>
+          <div class="field-group">
+            <label for="lon-input">Longitude (−180 to 180)</label>
+            <input type="number" id="lon-input" class="text-input" placeholder="10.7522" min="-180" max="180" step="any" />
+          </div>
+        </div>
+      </div>
+
+      <!-- Panel: Device Geolocation -->
+      <div id="panel-device" class="tab-panel" role="tabpanel" aria-labelledby="tab-device" hidden>
+        <div class="device-panel">
+          <p class="device-hint">Grant location access so we can read your GPS coordinates.</p>
+          <button id="get-location-btn" class="btn btn-secondary">
+            <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"/></svg>
+            Get My Location
+          </button>
+          <!-- Shows retrieved GPS coords -->
+          <p id="device-coords" class="device-coords" hidden></p>
+        </div>
+      </div>
+
+      <!-- DATE SELECTOR — always visible regardless of active tab -->
+      <div class="field-group date-field">
+        <label for="date-input">Date</label>
+        <input type="date" id="date-input" class="text-input" />
+      </div>
+
+      <!-- CALCULATE BUTTON -->
+      <button id="calculate-btn" class="btn btn-primary" aria-live="polite">
+        <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path d="M10 2a8 8 0 100 16A8 8 0 0010 2zm1 11H9v-2h2v2zm0-4H9V7h2v2z"/></svg>
+        Calculate Sun Times
+      </button>
+
+      <!-- Inline error message -->
+      <p id="error-msg" class="error-msg" role="alert" hidden></p>
+
+    </section>
+
+    <!-- ---- RESULTS CARD — hidden until calculation succeeds ---- -->
+    <section id="results-card" class="card results-card" aria-label="Sun times results" hidden>
+
+      <!-- Key data pills -->
+      <div class="meta-pills">
+        <div class="pill">
+          <span class="pill-label">Coordinates</span>
+          <span id="res-coords" class="pill-value mono"></span>
+        </div>
+        <div class="pill">
+          <span class="pill-label">Date</span>
+          <span id="res-date" class="pill-value"></span>
+        </div>
+        <div class="pill">
+          <span class="pill-label">Timezone</span>
+          <span id="res-tz" class="pill-value mono"></span>
+        </div>
+      </div>
+
+      <!-- Three sun-time cards -->
+      <div class="sun-times-grid">
+
+        <!-- Sunrise -->
+        <div class="sun-time-card sunrise-card">
+          <div class="sun-time-icon" aria-hidden="true">🌅</div>
+          <div class="sun-time-label">Sunrise</div>
+          <div id="res-sunrise" class="sun-time-value mono"></div>
+        </div>
+
+        <!-- Solar Noon -->
+        <div class="sun-time-card noon-card">
+          <div class="sun-time-icon" aria-hidden="true">☀️</div>
+          <div class="sun-time-label">Solar Noon</div>
+          <div id="res-noon" class="sun-time-value mono"></div>
+        </div>
+
+        <!-- Sunset -->
+        <div class="sun-time-card sunset-card">
+          <div class="sun-time-icon" aria-hidden="true">🌇</div>
+          <div class="sun-time-label">Sunset</div>
+          <div id="res-sunset" class="sun-time-value mono"></div>
+        </div>
+
+      </div>
+
+      <!-- Day length indicator -->
+      <div class="day-length">
+        <span class="day-length-label">Day length:</span>
+        <span id="res-daylength" class="day-length-value mono"></span>
+        <div class="day-bar-track" aria-hidden="true">
+          <div id="day-bar-fill" class="day-bar-fill"></div>
+        </div>
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- ============================================================
+       FOOTER
+  ============================================================ -->
+  <!-- ============================================================
+       FOOTER — Stormberry branded
+  ============================================================ -->
+  <footer class="site-footer">
+    <div class="footer-inner">
+
+      <!-- Brand -->
+      <div class="footer-brand">
+        <a href="https://stormberry.as" target="_blank" rel="noopener" class="footer-logo">
+          Stormberry<span class="footer-dot">.</span>
+        </a>
+        <p class="footer-tagline">Smarter sales. Global culture. AI-driven strategy.</p>
+      </div>
+
+      <!-- Powered-by attribution -->
+      <div class="footer-powered">
+        <p>Powered by
+          <a href="https://github.com/mourner/suncalc" target="_blank" rel="noopener">SunCalc</a>,
+          the <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl" target="_blank" rel="noopener">Intl API</a>,
+          &amp; <a href="https://open-meteo.com" target="_blank" rel="noopener">Open-Meteo</a> (GPS fallback only).
+        </p>
+      </div>
+
+    </div>
+
+    <!-- Bottom bar -->
+    <div class="footer-bottom">
+
+      <!-- Social icons — identical SVGs to the Stormberry main site -->
+      <div class="footer-social">
+
+        <!-- LinkedIn -->
+        <a href="https://linkedin.com/company/StormberryAS" target="_blank" rel="noopener noreferrer" aria-label="Stormberry on LinkedIn">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/>
+            <rect width="4" height="12" x="2" y="9"/>
+            <circle cx="4" cy="4" r="2"/>
+          </svg>
+        </a>
+
+        <!-- X (Twitter) -->
+        <a href="https://x.com/StormberryAS" target="_blank" rel="noopener noreferrer" aria-label="Stormberry on X">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M18.901 1.153h3.68l-8.04 9.19L24 22.846h-7.406l-5.8-7.584-6.638 7.584H.474l8.6-9.83L0 1.154h7.594l5.243 6.932ZM17.61 20.644h2.039L6.486 3.24H4.298Z"/>
+          </svg>
+        </a>
+
+        <!-- GitHub -->
+        <a href="https://github.com/StormberryAS" target="_blank" rel="noopener noreferrer" aria-label="Stormberry on GitHub">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M15 22v-4a4.8 4.8 0 0 0-1-3.26c3 0 6-2 6-6a4.6 4.6 0 0 0-1.39-3.23 4.1 4.1 0 0 0 0-3.24s-1.1-.35-3.5 1.25a11.3 11.3 0 0 0-6 0c-2.4-1.6-3.5-1.25-3.5-1.25a4.1 4.1 0 0 0 0 3.24A4.6 4.6 0 0 0 2 10.74c0 4 3 6 6 6a4.8 4.8 0 0 0-1 3.26v4"/>
+            <path d="M9 20c-4.1 1.4-5-2.5-5-2.5"/>
+          </svg>
+        </a>
+
+        <!-- YouTube -->
+        <a href="https://youtube.com/@StormberryAS" target="_blank" rel="noopener noreferrer" aria-label="Stormberry on YouTube">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+          </svg>
+        </a>
+
+        <!-- Nostr -->
+        <a href="nostr:npub1zz9w77p2jkn95t0st9tcuea8zdn2vknf0ctrwyd4g46w3kswdccqesr0pa"
+           target="_blank" rel="noopener noreferrer"
+           aria-label="Stormberry on Nostr"
+           title="Nostr: npub1zz9w77p2jkn95t0st9tcuea8zdn2vknf0ctrwyd4g46w3kswdccqesr0pa">
+          <!-- Official Nostr SVG logo -->
+          <svg width="22" height="22" viewBox="0 0 875 875" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+            <path d="m684.72,485.57c.22,12.59-11.93,51.47-38.67,81.3-26.74,29.83-56.02,20.85-58.42,20.16s-3.09-4.46-7.89-3.77-9.6,6.17-18.86,7.2-17.49,1.71-26.06-1.37c-4.46.69-5.14.71-7.2,2.24s-17.83,10.79-21.6,11.47c0,7.2-1.37,44.57,0,55.89s3.77,25.71,7.54,36c3.77,10.29,2.74,10.63,7.54,9.94s13.37.34,15.77,4.11c2.4,3.77,1.37,6.51,5.49,8.23s60.69,17.14,99.43,19.2c26.74.69,42.86,2.74,52.12,19.54,1.37,7.89,7.54,13.03,11.31,14.06s8.23,2.06,12,5.83,1.03,8.23,5.49,11.66c4.46,3.43,14.74,8.57,25.37,13.71,10.63,5.14,15.09,13.37,15.77,16.11s1.71,10.97,1.71,10.97c0,0-8.91,0-10.97-2.06s-2.74-5.83-2.74-5.83c0,0-6.17,1.03-7.54,3.43s.69,2.74-7.89.69-11.66-3.77-18.17-8.57c-6.51-4.8-16.46-17.14-25.03-16.8,4.11,8.23,5.83,8.23,10.63,10.97s8.23,5.83,8.23,5.83l-7.2,4.46s-4.46,2.06-14.74-.69-11.66-4.46-12.69-10.63,0-9.26-2.74-14.4-4.11-15.77-22.29-21.26c-18.17-5.49-66.52-21.26-100.12-24.69s-22.63-2.74-28.11-1.37-15.77,4.46-26.4-1.37c-10.63-5.83-16.8-13.71-17.49-20.23s-1.71-10.97,0-19.2,3.43-19.89,1.71-26.74-14.06-55.89-19.89-64.12c-13.03,1.03-50.74-.69-50.74-.69,0,0-2.4-.69-17.49,5.83s-36.48,13.76-46.77,19.93-14.4,9.7-16.12,13.13c.12,3-1.23,7.72-2.79,9.06s-12.48,2.42-12.48,2.42c0,0-5.85,5.86-8.25,9.97-6.86,9.6-55.2,125.14-66.52,149.83-13.54,32.57-9.77,27.43-37.71,27.43s-8.06.3-8.06.3c0,0-12.34,5.88-16.8,5.88s-18.86-2.4-26.4,0-16.46,9.26-23.31,10.29-4.95-1.34-8.38-3.74c-4-.21-14.27-.12-14.27-.12,0,0,1.74-6.51,7.91-10.88,8.23-5.83,25.37-16.11,34.63-21.26s17.49-7.89,23.31-9.26,18.51-6.17,30.51-9.94,19.54-8.23,29.83-31.54c10.29-23.31,50.4-111.43,51.43-116.23.63-2.96,3.73-6.48,4.8-15.09.66-5.35-2.49-13.04,1.71-22.63,10.97-25.03,21.6-20.23,26.4-20.23s17.14.34,26.4-1.37,15.43-2.74,24.69-7.89,11.31-8.91,11.31-8.91l-19.89-3.43s-18.51.69-25.03-4.46-15.43-15.77-15.43-15.77l-7.54-7.2,1.03,8.57s-5.14-8.91-6.51-10.29-8.57-6.51-11.31-11.31-7.54-25.03-7.54-25.03l-6.17,13.03-1.71-18.86-5.14,7.2-2.74-16.11-4.8,8.23-3.43-14.4-5.83,4.46-2.4-10.29-5.83-3.43s-14.06-9.26-16.46-9.6-4.46,3.43-4.46,3.43l1.37,12-12.2-6.27-7-11.9s2.36,4.01-9.62,7.53c-20.55,0-21.89-2.28-24.93-3.94-1.31-6.56-5.57-10.11-5.57-10.11h-20.57l-.34-6.86-7.89,3.09.69-10.29h-14.06l1.03-11.31h-8.91s3.09-9.26,25.71-22.97,25.03-16.46,46.29-17.14c21.26-.69,32.91,2.74,46.29,8.23s38.74,13.71,43.89,17.49c11.31-9.94,28.46-19.89,34.29-19.89,1.03-2.4,6.19-12.33,17.96-17.6,35.31-15.81,108.13-34,131.53-35.54,31.2-2.06,7.89-1.37,39.09,2.06,31.2,3.43,54.17,7.54,69.6,12.69,12.58,4.19,25.03,9.6,34.29,2.06,4.33-1.81,11.81-1.34,17.83-5.14,30.69-25.09,34.72-32.35,43.63-41.95s20.14-24.91,22.54-45.14,4.46-58.29-10.63-88.12-28.8-45.26-34.63-69.26c-5.83-24-8.23-61.03-6.17-73.03,2.06-12,5.14-22.29,6.86-30.51s9.94-14.74,19.89-16.46c9.94-1.71,17.83,1.37,22.29,4.8,4.46,3.43,11.65,6.28,13.37,10.29.34,1.71-1.37,6.51,8.23,8.23,9.6,1.71,16.05,4.16,16.05,4.16,0,0,15.64,4.29,3.11,7.73-12.69,2.06-20.52-.71-24.29,1.69s-7.21,10.08-9.61,11.1-7.2.34-12,4.11-9.6,6.86-12.69,14.4-5.49,15.77-3.43,26.74,8.57,31.54,14.4,43.2c5.83,11.66,20.23,40.8,24.34,47.66s15.77,29.49,16.8,53.83,1.03,44.23,0,54.86-10.84,51.65-35.53,85.94c-8.16,14.14-23.21,31.9-24.67,35.03-1.45,3.13-3.02,4.88-1.61,7.65,4.62,9.05,12.87,22.13,14.71,29.22,2.29,6.64,6.99,16.13,7.22,28.72Z"/>
+          </svg>
+        </a>
+
+      </div><!-- /footer-social -->
+
+      <p>&copy; 2026 Stormberry A.S. All rights reserved.</p>
+      <p class="footer-privacy">Privacy First: We do not collect cookies or personal data.</p>
+      <p class="footer-ai">Proudly powered by sovereign AI agents.</p>
+
+    </div><!-- /footer-bottom -->
+  </footer>
+
+  <!-- Loading overlay — shown during async calls -->
+  <div id="loading-overlay" class="loading-overlay" hidden aria-busy="true" aria-label="Loading">
+    <div class="spinner"></div>
+    <p>Resolving timezone…</p>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
