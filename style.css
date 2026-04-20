@@ -904,3 +904,67 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   .meta-pills { flex-direction: column; }
   .pill { min-width: unset; }
 }
+
+/* App Switcher Carousel */
+.app-switcher-container {
+  padding: 3rem 0;
+  text-align: center;
+  margin-top: 2rem;
+  border-top: 1px solid var(--border-color);
+}
+
+.switcher-title {
+  font-size: 1.2rem;
+  margin-bottom: 1.5rem;
+  color: var(--text-secondary);
+  font-weight: 600;
+  letter-spacing: -0.5px;
+}
+
+.app-switcher-scroll {
+  display: flex;
+  gap: 1rem;
+  overflow-x: auto;
+  padding-bottom: 1rem;
+  justify-content: center;
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none;  /* IE and Edge */
+}
+.app-switcher-scroll::-webkit-scrollbar {
+  display: none; /* Chrome, Safari and Opera */
+}
+
+.switcher-card {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 1rem 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  color: var(--text-primary);
+  text-decoration: none;
+  font-weight: 600;
+  transition: transform 0.2s, background 0.2s, box-shadow 0.2s;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.switcher-card:hover {
+  transform: translateY(-3px);
+  background: var(--bg-tertiary);
+  box-shadow: 0 4px 12px var(--shadow-color);
+}
+
+.switcher-card i {
+  width: 20px;
+  height: 20px;
+  opacity: 0.8;
+}
+
+@media (max-width: 768px) {
+  .app-switcher-scroll {
+    justify-content: flex-start;
+    padding: 0.5rem 1rem 1.5rem 1rem;
+  }
+}
