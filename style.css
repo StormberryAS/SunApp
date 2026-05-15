@@ -910,7 +910,7 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   padding: 3rem 0;
   text-align: center;
   margin-top: 2rem;
-  border-top: 1px solid var(--border-color);
+  border-top: 1px solid var(--border-color, var(--border, rgba(255,255,255,0.08)));
 }
 
 .switcher-title {
@@ -944,8 +944,8 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 }
 
 .switcher-card {
-  background: var(--bg-secondary);
-  border: 1px solid var(--border-color);
+  background: var(--bg-secondary, var(--bg-card, rgba(255,255,255,0.05)));
+  border: 1px solid var(--border-color, var(--border, rgba(255,255,255,0.08)));
   border-radius: 12px;
   padding: 1rem 1.5rem;
   display: flex;
@@ -964,8 +964,8 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 
 .switcher-card:hover {
   transform: translateY(-3px);
-  background: var(--bg-tertiary);
-  box-shadow: 0 4px 12px var(--shadow-color);
+  background: var(--bg-tertiary, var(--bg-card-hover, rgba(255,255,255,0.15)));
+  box-shadow: 0 4px 12px var(--shadow-color, var(--shadow-card, 0 8px 32px rgba(0,0,0,0.45)));
 }
 
 .switcher-card i {
