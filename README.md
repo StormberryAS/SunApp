@@ -1,72 +1,47 @@
-# SunApp 🌅
+# SunApp
 
-SunApp is a beautifully designed, fast, and privacy-first web application that calculates precise sunrise, solar noon, and sunset times for any location on Earth. It intelligently handles timezone resolutions and properly addresses edge cases such as the Midnight Sun and Polar Night.
+Privacy-first solar-position calculator. SunApp computes precise sunrise, solar noon and sunset times for any location on Earth, handles timezone resolution, and addresses edge cases such as the Midnight Sun and Polar Night.
 
-**Live site:** [sun.stormberry.as](http://sun.stormberry.as/)
+**Live:** [sun.stormberry.as](https://sun.stormberry.as)
 
-## 🎯 Goals
-- **Precision:** Deliver astronomically accurate sun times without heavy backend servers.
-- **Privacy First:** No cookies, no tracking. Calculations are largely done client-side.
-- **Aesthetic Excellence:** Provide a premium, glassmorphism-inspired dark mode UI with fluid micro-animations.
-- **Global Support:** Support for over 2,000 major cities, plus exact GPS and device geolocation fallbacks.
+## Features
+- **City search**: rapid, offline autocomplete for 2,000+ major cities.
+- **On-device geolocation**: retrieve your current coordinates with one click.
+- **Manual GPS input**: find astronomical data for any arbitrary point on the globe.
+- **Time travel**: pick any date, past or future, to calculate historical or upcoming solar events.
+- **Polar edge cases**: displays "Midnight Sun" or "Polar Night" when applicable based on latitude and season.
+- **Responsive layout**: optimised for mobile and desktop.
 
-## 🚀 Features
-- **City Search:** Rapid, offline autocomplete search for major cities.
-- **On-Device Geolocation:** Retrieve your current coordinates with one click.
-- **Manual GPS Input:** For finding astronomical data for any arbitrary point on the globe.
-- **Time-Travel:** Pick any date (past or future) from the calendar to calculate historical or upcoming solar events.
-- **Polar Edge Cases:** Displays "Midnight Sun" 🌞 or "Polar Night" 🌑 when applicable based on latitude and season.
-- **Responsive Layout:** Optimized for both mobile devices and large desktop monitors.
+## Architecture
+- **Vanilla HTML/CSS/JS**, no frameworks, no build step.
+- **Privacy first**, no cookies, no tracking. Only one anonymous external call (Open-Meteo) to resolve a raw GPS coordinate to its IANA timezone. City lookups use a bundled, pre-compiled database.
+- Stormberry dark-mode glassmorphism design system, Inter typography.
+- **Sovereign AI**, built and maintained using high-speed agentic workflows.
 
-## 🛠️ Technology Stack
-SunApp is built to be extremely lightweight, utilizing a minimal set of dependencies:
+## Stack
+- [SunCalc](https://github.com/mourner/suncalc) for solar position maths, bundled locally.
+- Browser `Intl` API for timezone-aware time formatting.
+- [Open-Meteo](https://open-meteo.com) as an anonymous timezone fallback for raw GPS coordinates only.
+- [Inter](https://rsms.me/inter/) typeface, locally hosted.
 
-### Frontend
-- **Languages:** Vanilla HTML5, CSS3, and JavaScript (ES6+). No heavy frameworks.
-- **Styling:** Custom CSS implementing modern glassmorphism design, CSS variables, and fluid typography.
-- **Fonts:** [Inter](https://rsms.me/inter/) (served locally for speed and privacy).
-- **Core Library:** [SunCalc](https://github.com/mourner/suncalc) (bundled locally) for all mathematical solar position calculations.
-- **Timezone Resolution:** Uses the browser's native `Intl` API alongside [Open-Meteo](https://open-meteo.com) (used strictly as an anonymous fallback to resolve raw GPS lat/lon to IANA timezones).
+## Local development
+```bash
+git clone https://github.com/StormberryAS/SunApp.git
+cd SunApp
+python3 -m http.server 8000
+```
+Open `http://localhost:8000` in your browser.
 
-### Backend / Data Compilation (Python)
-Instead of pinging a database every time a user types, SunApp pre-compiles a robust city list offline. 
-- **`update_cities.py`**: A Python script that utilizes `geonamescache` to dynamically fetch population data.
-- **Dataset:** It automatically captures the top 10 populated cities per country, all US state capitals, top 5 cities per US state, and all Brazilian capitals (correctly mapped to their State abbreviations).
-- The resulting compact database is injected directly as a constant array into `app.js`.
+### Updating the city database
+The city list is pre-compiled offline by `update_cities.py`, which uses `geonamescache` to fetch population data and selects the top 10 cities per country, all US state capitals, the top 5 cities per US state, and all Brazilian capitals (mapped to their state abbreviations). The compiled database is injected into `app.js` as a constant array.
 
-## 📦 Running Locally
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+pip install geonamescache
+python update_cities.py
+```
+The `.venv` folder is excluded via `.gitignore` to keep the repository lightweight.
 
-Since SunApp serves primarily static files, it is very easy to run locally:
-
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/StormberryAS/SunApp.git
-   cd SunApp
-   ```
-2. Start a local HTTP server to avoid CORS issues:
-   ```bash
-   python3 -m http.server 8000
-   ```
-3. Open your browser and navigate to `http://localhost:8000`.
-
-### Updating the City Database
-
-If you wish to update or modify the offline city database:
-1. Ensure you have Python installed.
-2. Create a virtual environment and install the required dependencies:
-   ```bash
-   python3 -m venv .venv
-   source .venv/bin/activate
-   pip install geonamescache
-   ```
-3. Run the generator script:
-   ```bash
-   python update_cities.py
-   ```
-*Note: The `.venv` folder is excluded via `.gitignore` to keep the repository lightweight.*
-
-## ⚖️ License & Attribution
-Designed and built by **[Stormberry A.S.](https://stormberry.as)**
-- Powered by [SunCalc](https://github.com/mourner/suncalc).
-- GPS fallback powered by [Open-Meteo](https://open-meteo.com).
-- Icons and general components inspired by modern web standards.
+## Credits
+Built by [Stormberry AS](https://stormberry.as). Proudly powered by sovereign AI agents.
