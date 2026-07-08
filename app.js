@@ -5,7 +5,6 @@
  * Libraries used:
  *   • SunCalc  (loaded via CDN in index.html) — astronomical math
  *   • Intl API (built-in)                     — timezone-aware formatting
- *   • Open-Meteo API (fetch)                  — timezone lookup for raw GPS coords
  *
  * Key design decisions:
  *   1. All SunCalc calls return UTC Date objects — we then format
@@ -13,8 +12,10 @@
  *      the times are always correct for the queried location, not
  *      the browser's local timezone.
  *   2. For cities we already have the IANA timezone ID embedded in
- *      the database. For raw GPS / device coords we call Open-Meteo
- *      to resolve the timezone.
+ *      the database. For raw GPS coords we resolve the timezone
+ *      offline from the nearest known city, and for device
+ *      geolocation we use the browser's own IANA zone. Nothing hits
+ *      the network.
  *   3. Polar Night / Midnight Sun: SunCalc returns NaN Dates when
  *      the sun doesn't cross the horizon — we detect this and show
  *      a user-friendly label instead of crashing.
@@ -2332,23 +2333,33 @@ function requestDeviceLocation() {
 }
 
 /* ================================================================
-   SECTION 8 — TIMEZONE RESOLUTION FOR RAW GPS COORDS
-   Uses Open-Meteo's forecast API which returns timezone info
-   without charging or requiring an API key.
+   SECTION 8 — TIMEZONE RESOLUTION (FULLY OFFLINE)
+   No network calls. City zones come straight from the bundled city
+   database; typed coordinates resolve to the nearest known city's
+   zone; device geolocation uses the browser's own IANA zone. Nothing
+   hits the network.
 ================================================================ */
-async function resolveTimezone(lat, lon) {
-  // Open-Meteo returns timezone info along with (empty) forecast data.
-  // We request 0 forecast days to minimise response payload.
-  const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&forecast_days=0&timezone=auto`;
+function nearestCityTimezone(lat, lon) {
+  // Timezones are large political regions and the bundled city list is dense
+  // near populated areas, so the nearest city's zone is the correct one in
+  // practice. Equirectangular distance is plenty for a nearest-neighbour pick.
+  let best = null, bestDist = Infinity;
+  for (const c of CITIES) {
+    let dLon = Math.abs(c.lon - lon);
+    if (dLon > 180) dLon = 360 - dLon;
+    const dLat = c.lat - lat;
+    const x = dLon * Math.cos(((lat + c.lat) / 2) * Math.PI / 180);
+    const dist = x * x + dLat * dLat;
+    if (dist < bestDist) { bestDist = dist; best = c; }
+  }
+  return best ? best.tz : (Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC');
+}
 
-  const response = await fetch(url);
-  if (!response.ok) throw new Error(`Open-Meteo responded with ${response.status}`);
-
-  const data = await response.json();
-
-  // The API returns e.g. "timezone": "Europe/Oslo", "timezone_abbreviation": "CEST"
-  if (!data.timezone) throw new Error('No timezone in Open-Meteo response');
-  return { ianaId: data.timezone, abbreviation: data.timezone_abbreviation || '' };
+function resolveTimezone(lat, lon) {
+  const ianaId = (state.tab === 'device')
+    ? (Intl.DateTimeFormat().resolvedOptions().timeZone || nearestCityTimezone(lat, lon))
+    : nearestCityTimezone(lat, lon);
+  return { ianaId, abbreviation: getTimezoneAbbreviation(ianaId, els.dateInput.value) };
 }
 
 /* ================================================================
