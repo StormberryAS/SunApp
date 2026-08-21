@@ -163,8 +163,10 @@ function onCityInput() {
   // city being typed could fall off the list entirely.
   const startsWith = [], contains = [];
   for (const c of CITIES) {
-    if (c.fold.startsWith(qf)) startsWith.push(c);
-    else if (c.fold.includes(qf) || c.cfold.includes(qf)) contains.push(c);
+    // c.alt is the folded English exonym where GeoNames stores the local
+    // name, so "gothenburg" finds Goteborg and "cologne" finds Koeln.
+    if (c.fold.startsWith(qf) || c.alt.startsWith(qf)) startsWith.push(c);
+    else if (c.fold.includes(qf) || c.alt.includes(qf) || c.cfold.includes(qf)) contains.push(c);
   }
   const matches = startsWith.concat(contains).slice(0, 8); // Limit to 8 results for usability
 

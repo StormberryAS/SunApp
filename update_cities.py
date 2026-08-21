@@ -142,6 +142,59 @@ def fold(name: str) -> str:
     return '' if stripped == name.lower() else stripped
 
 
+# GeoNames' own alternate-name dump, the only source that tags names by
+# language. geonamescache flattens the tags away, which is why picking an
+# English name from it lands on "Augusta Ubiorum" or "CGN" for Koeln rather
+# than "Cologne".
+#
+# ~200 MB, cached outside the repositories and never committed. Re-download
+# only when the catalogue is rebuilt against a newer GeoNames release.
+ALT_ZIP = os.path.expanduser("~/.cache/geonames/alternateNamesV2.zip")
+
+
+def english_exonyms(geoname_ids):
+    """geonameid -> best English name, for ids we actually ship.
+
+    Preference order follows GeoNames' own flags: an explicitly preferred
+    English name beats a short one, which beats any other English entry.
+    Historic and colloquial names are rejected outright, otherwise Istanbul
+    acquires "Constantinople".
+    """
+    import zipfile
+
+    if not os.path.exists(ALT_ZIP):
+        print(f"  NOTE: {ALT_ZIP} missing, skipping English exonyms")
+        return {}
+
+    wanted = set(geoname_ids)
+    best = {}   # gid -> (rank, name); lower rank wins
+    with zipfile.ZipFile(ALT_ZIP) as zf:
+        member = next(n for n in zf.namelist() if n.endswith("alternateNamesV2.txt"))
+        with zf.open(member) as fh:
+            for raw in fh:
+                # alternateNameId, geonameid, isolanguage, alternateName,
+                # isPreferredName, isShortName, isColloquial, isHistoric, from, to
+                parts = raw.split(b"\t")
+                if len(parts) < 4 or parts[2] != b"en":
+                    continue
+                try:
+                    gid = int(parts[1])
+                except ValueError:
+                    continue
+                if gid not in wanted:
+                    continue
+                colloquial = len(parts) > 6 and parts[6] == b"1"
+                historic = len(parts) > 7 and parts[7] == b"1"
+                if colloquial or historic:
+                    continue
+                preferred = len(parts) > 4 and parts[4] == b"1"
+                short = len(parts) > 5 and parts[5] == b"1"
+                rank = 0 if preferred else (1 if short else 2)
+                if gid not in best or rank < best[gid][0]:
+                    best[gid] = (rank, parts[3].decode("utf-8", "replace"))
+    return {gid: name for gid, (_, name) in best.items()}
+
+
 def collect(target: int):
     gc = geonamescache.GeonamesCache()
     cities = gc.get_cities()
@@ -171,6 +224,7 @@ def collect(target: int):
             'name': name, 'country': country,
             'lat': city['latitude'], 'lon': city['longitude'],
             'tz': city['timezone'],
+            'gid': int(city['geonameid']),
         })
         return True
 
@@ -234,14 +288,30 @@ def collect(target: int):
     return out, core, filled, added_manual
 
 
-def pack(rows):
+def pack(rows, exonyms=None):
+    exonyms = exonyms or {}
     countries = sorted({c['country'] for c in rows})
     zones = sorted({c['tz'] for c in rows})
     ci = {v: i for i, v in enumerate(countries)}
     zi = {v: i for i, v in enumerate(zones)}
+
+    def alt_of(c):
+        """Folded English exonym, blank unless it adds a searchable form."""
+        en = exonyms.get(c.get('gid'))
+        if not en:
+            return ''
+        ef = fold(en) or en.lower()
+        primary = fold(c['name']) or c['name'].lower()
+        # Skip when it collides with the primary fold, and when the primary
+        # already contains it: "York" adds nothing to "York, PA".
+        if ef == primary or ef in primary:
+            return ''
+        return ef
+
     lines = [
         f"{c['name']}\t{fold(c['name'])}\t{ci[c['country']]}"
         f"\t{round(c['lat'] * 1e4)}\t{round(c['lon'] * 1e4)}\t{zi[c['tz']]}"
+        f"\t{alt_of(c)}"
         for c in rows
     ]
     return "\t".join(countries) + "\n" + "\t".join(zones) + "\n" + "\n".join(lines)
@@ -295,7 +365,8 @@ def render_js(packed: str, count: int) -> str:
         "        cfold: CF[+p[2]],\n"
         "        lat: +p[3] / 1e4,\n"
         "        lon: +p[4] / 1e4,\n"
-        "        tz: Z[+p[5]]\n"
+        "        tz: Z[+p[5]],\n"
+        "        alt: p[6] || ''\n"
         "      };\n"
         "    });\n"
         "  }\n"
@@ -320,7 +391,8 @@ def main():
     args = ap.parse_args()
 
     rows, core, filled, manual = collect(args.target)
-    packed = pack(rows)
+    exonyms = english_exonyms(c['gid'] for c in rows if 'gid' in c)
+    packed = pack(rows, exonyms)
     js = render_js(packed, len(rows))
 
     raw = len(js.encode())
@@ -331,6 +403,8 @@ def main():
     print(f"TOTAL                : {len(rows)}")
     print(f"cities.js            : {raw/1024:.1f} KiB raw, {gz/1024:.1f} KiB gzipped")
     print(f"cities.tsv           : {len(packed.encode())/1024:.1f} KiB")
+    searchable = sum(1 for line in packed.split("\n")[2:] if line.rsplit("\t", 1)[-1])
+    print(f"English exonyms      : {len(exonyms)} found, {searchable} add a new searchable form")
 
     for city in ('Kleppestø', 'Askøy', 'Florvåg', 'Strusshamn', 'Erdal',
                  'Hetlevik', 'Follese', 'Molde', 'Coventry'):
