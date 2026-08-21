@@ -1,0 +1,19 @@
+# GitHub Pages serves sun.stormberry.as from this repository root.
+#
+# Everything listed below is source, tooling or build input that must never be
+# published. Without this file Pages would serve the whole Android tree,
+# including gradlew, the Gradle wrapper jar and local.properties.
+#
+# Added 2026-08-21, before the android/ directory existed, precisely so that
+# scaffolding it cannot leak.
+exclude:
+  - android/
+  - tools/
+  - data/
+  - .venv/
+  - venv/
+  - test.js
+  - zapstore.yaml
+  - README.md
+  - LICENSE
+  - update_cities.py
