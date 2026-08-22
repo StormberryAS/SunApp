@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Only the four generator preferences are backed up. Nothing else exists: no
+  account, no history on disk, no cache worth restoring.
+-->
+<full-backup-content>
+    <include domain="sharedpref" path="username_generator.xml" />
+</full-backup-content>

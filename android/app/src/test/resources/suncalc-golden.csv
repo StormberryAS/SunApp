@@ -1,0 +1,351 @@
+case_id,description,lat,lon,date,event,expected_utc
+G01,Equator at the prime meridian on the March equinox - baseline,0.0000,0.0000,2026-03-20,SUNRISE,2026-03-20T06:05:30.948Z
+G01,Equator at the prime meridian on the March equinox - baseline,0.0000,0.0000,2026-03-20,SUNSET,2026-03-20T18:12:10.791Z
+G01,Equator at the prime meridian on the March equinox - baseline,0.0000,0.0000,2026-03-20,SUNRISE_END,2026-03-20T06:07:38.869Z
+G01,Equator at the prime meridian on the March equinox - baseline,0.0000,0.0000,2026-03-20,SUNSET_START,2026-03-20T18:10:02.870Z
+G01,Equator at the prime meridian on the March equinox - baseline,0.0000,0.0000,2026-03-20,DAWN,2026-03-20T05:44:50.859Z
+G01,Equator at the prime meridian on the March equinox - baseline,0.0000,0.0000,2026-03-20,DUSK,2026-03-20T18:32:50.880Z
+G01,Equator at the prime meridian on the March equinox - baseline,0.0000,0.0000,2026-03-20,NAUTICAL_DAWN,2026-03-20T05:20:50.848Z
+G01,Equator at the prime meridian on the March equinox - baseline,0.0000,0.0000,2026-03-20,NAUTICAL_DUSK,2026-03-20T18:56:50.891Z
+G01,Equator at the prime meridian on the March equinox - baseline,0.0000,0.0000,2026-03-20,NIGHT_END,2026-03-20T04:56:50.837Z
+G01,Equator at the prime meridian on the March equinox - baseline,0.0000,0.0000,2026-03-20,NIGHT,2026-03-20T19:20:50.903Z
+G01,Equator at the prime meridian on the March equinox - baseline,0.0000,0.0000,2026-03-20,GOLDEN_HOUR_END,2026-03-20T06:32:50.880Z
+G01,Equator at the prime meridian on the March equinox - baseline,0.0000,0.0000,2026-03-20,GOLDEN_HOUR,2026-03-20T17:44:50.859Z
+G01,Equator at the prime meridian on the March equinox - baseline,0.0000,0.0000,2026-03-20,SOLAR_NOON,2026-03-20T12:08:50.870Z
+G01,Equator at the prime meridian on the March equinox - baseline,0.0000,0.0000,2026-03-20,NADIR,2026-03-20T00:08:50.870Z
+G02,Equator at the prime meridian on the June solstice,0.0000,0.0000,2026-06-21,SUNRISE,2026-06-21T05:59:21.853Z
+G02,Equator at the prime meridian on the June solstice,0.0000,0.0000,2026-06-21,SUNSET,2026-06-21T18:06:37.658Z
+G02,Equator at the prime meridian on the June solstice,0.0000,0.0000,2026-06-21,SUNRISE_END,2026-06-21T06:01:41.280Z
+G02,Equator at the prime meridian on the June solstice,0.0000,0.0000,2026-06-21,SUNSET_START,2026-06-21T18:04:18.231Z
+G02,Equator at the prime meridian on the June solstice,0.0000,0.0000,2026-06-21,DAWN,2026-06-21T05:36:49.700Z
+G02,Equator at the prime meridian on the June solstice,0.0000,0.0000,2026-06-21,DUSK,2026-06-21T18:29:09.811Z
+G02,Equator at the prime meridian on the June solstice,0.0000,0.0000,2026-06-21,NAUTICAL_DAWN,2026-06-21T05:10:36.321Z
+G02,Equator at the prime meridian on the June solstice,0.0000,0.0000,2026-06-21,NAUTICAL_DUSK,2026-06-21T18:55:23.190Z
+G02,Equator at the prime meridian on the June solstice,0.0000,0.0000,2026-06-21,NIGHT_END,2026-06-21T04:44:15.922Z
+G02,Equator at the prime meridian on the June solstice,0.0000,0.0000,2026-06-21,NIGHT,2026-06-21T19:21:43.589Z
+G02,Equator at the prime meridian on the June solstice,0.0000,0.0000,2026-06-21,GOLDEN_HOUR_END,2026-06-21T06:29:09.811Z
+G02,Equator at the prime meridian on the June solstice,0.0000,0.0000,2026-06-21,GOLDEN_HOUR,2026-06-21T17:36:49.700Z
+G02,Equator at the prime meridian on the June solstice,0.0000,0.0000,2026-06-21,SOLAR_NOON,2026-06-21T12:02:59.756Z
+G02,Equator at the prime meridian on the June solstice,0.0000,0.0000,2026-06-21,NADIR,2026-06-21T00:02:59.756Z
+G03,London mid-latitude on the March equinox,51.5074,-0.1278,2026-03-20,SUNRISE,2026-03-20T06:05:06.748Z
+G03,London mid-latitude on the March equinox,51.5074,-0.1278,2026-03-20,SUNSET,2026-03-20T18:13:36.322Z
+G03,London mid-latitude on the March equinox,51.5074,-0.1278,2026-03-20,SUNRISE_END,2026-03-20T06:08:32.275Z
+G03,London mid-latitude on the March equinox,51.5074,-0.1278,2026-03-20,SUNSET_START,2026-03-20T18:10:10.795Z
+G03,London mid-latitude on the March equinox,51.5074,-0.1278,2026-03-20,DAWN,2026-03-20T05:31:48.523Z
+G03,London mid-latitude on the March equinox,51.5074,-0.1278,2026-03-20,DUSK,2026-03-20T18:46:54.547Z
+G03,London mid-latitude on the March equinox,51.5074,-0.1278,2026-03-20,NAUTICAL_DAWN,2026-03-20T04:52:28.486Z
+G03,London mid-latitude on the March equinox,51.5074,-0.1278,2026-03-20,NAUTICAL_DUSK,2026-03-20T19:26:14.584Z
+G03,London mid-latitude on the March equinox,51.5074,-0.1278,2026-03-20,NIGHT_END,2026-03-20T04:11:33.670Z
+G03,London mid-latitude on the March equinox,51.5074,-0.1278,2026-03-20,NIGHT,2026-03-20T20:07:09.400Z
+G03,London mid-latitude on the March equinox,51.5074,-0.1278,2026-03-20,GOLDEN_HOUR_END,2026-03-20T06:49:09.301Z
+G03,London mid-latitude on the March equinox,51.5074,-0.1278,2026-03-20,GOLDEN_HOUR,2026-03-20T17:29:33.769Z
+G03,London mid-latitude on the March equinox,51.5074,-0.1278,2026-03-20,SOLAR_NOON,2026-03-20T12:09:21.535Z
+G03,London mid-latitude on the March equinox,51.5074,-0.1278,2026-03-20,NADIR,2026-03-20T00:09:21.535Z
+G04,Bergen at midsummer - civil twilight all night,60.3913,5.3221,2026-06-21,SUNRISE,2026-06-21T02:11:05.149Z
+G04,Bergen at midsummer - civil twilight all night,60.3913,5.3221,2026-06-21,SUNSET,2026-06-21T21:12:19.394Z
+G04,Bergen at midsummer - civil twilight all night,60.3913,5.3221,2026-06-21,SUNRISE_END,2026-06-21T02:18:40.521Z
+G04,Bergen at midsummer - civil twilight all night,60.3913,5.3221,2026-06-21,SUNSET_START,2026-06-21T21:04:44.021Z
+G04,Bergen at midsummer - civil twilight all night,60.3913,5.3221,2026-06-21,DAWN,2026-06-21T00:07:49.165Z
+G04,Bergen at midsummer - civil twilight all night,60.3913,5.3221,2026-06-21,DUSK,2026-06-21T23:15:35.378Z
+G04,Bergen at midsummer - civil twilight all night,60.3913,5.3221,2026-06-21,NAUTICAL_DAWN,NONE
+G04,Bergen at midsummer - civil twilight all night,60.3913,5.3221,2026-06-21,NAUTICAL_DUSK,NONE
+G04,Bergen at midsummer - civil twilight all night,60.3913,5.3221,2026-06-21,NIGHT_END,NONE
+G04,Bergen at midsummer - civil twilight all night,60.3913,5.3221,2026-06-21,NIGHT,NONE
+G04,Bergen at midsummer - civil twilight all night,60.3913,5.3221,2026-06-21,GOLDEN_HOUR_END,2026-06-21T03:33:03.147Z
+G04,Bergen at midsummer - civil twilight all night,60.3913,5.3221,2026-06-21,GOLDEN_HOUR,2026-06-21T19:50:21.396Z
+G04,Bergen at midsummer - civil twilight all night,60.3913,5.3221,2026-06-21,SOLAR_NOON,2026-06-21T11:41:42.271Z
+G04,Bergen at midsummer - civil twilight all night,60.3913,5.3221,2026-06-21,NADIR,2026-06-20T23:41:42.271Z
+G05,Bergen at midwinter - short but complete day,60.3913,5.3221,2026-12-21,SUNRISE,2026-12-21T08:45:45.303Z
+G05,Bergen at midwinter - short but complete day,60.3913,5.3221,2026-12-21,SUNSET,2026-12-21T14:30:08.989Z
+G05,Bergen at midwinter - short but complete day,60.3913,5.3221,2026-12-21,SUNRISE_END,2026-12-21T08:52:45.610Z
+G05,Bergen at midwinter - short but complete day,60.3913,5.3221,2026-12-21,SUNSET_START,2026-12-21T14:23:08.682Z
+G05,Bergen at midwinter - short but complete day,60.3913,5.3221,2026-12-21,DAWN,2026-12-21T07:46:34.947Z
+G05,Bergen at midwinter - short but complete day,60.3913,5.3221,2026-12-21,DUSK,2026-12-21T15:29:19.346Z
+G05,Bergen at midwinter - short but complete day,60.3913,5.3221,2026-12-21,NAUTICAL_DAWN,2026-12-21T06:48:47.360Z
+G05,Bergen at midwinter - short but complete day,60.3913,5.3221,2026-12-21,NAUTICAL_DUSK,2026-12-21T16:27:06.932Z
+G05,Bergen at midwinter - short but complete day,60.3913,5.3221,2026-12-21,NIGHT_END,2026-12-21T05:56:34.260Z
+G05,Bergen at midwinter - short but complete day,60.3913,5.3221,2026-12-21,NIGHT,2026-12-21T17:19:20.032Z
+G05,Bergen at midwinter - short but complete day,60.3913,5.3221,2026-12-21,GOLDEN_HOUR_END,2026-12-21T11:11:39.439Z
+G05,Bergen at midwinter - short but complete day,60.3913,5.3221,2026-12-21,GOLDEN_HOUR,2026-12-21T12:04:14.853Z
+G05,Bergen at midwinter - short but complete day,60.3913,5.3221,2026-12-21,SOLAR_NOON,2026-12-21T11:37:57.146Z
+G05,Bergen at midwinter - short but complete day,60.3913,5.3221,2026-12-21,NADIR,2026-12-20T23:37:57.146Z
+G06,Bergen on the March equinox,60.3913,5.3221,2026-03-20,SUNRISE,2026-03-20T05:42:24.661Z
+G06,Bergen on the March equinox,60.3913,5.3221,2026-03-20,SUNSET,2026-03-20T17:52:43.020Z
+G06,Bergen on the March equinox,60.3913,5.3221,2026-03-20,SUNRISE_END,2026-03-20T05:46:43.584Z
+G06,Bergen on the March equinox,60.3913,5.3221,2026-03-20,SUNSET_START,2026-03-20T17:48:24.097Z
+G06,Bergen on the March equinox,60.3913,5.3221,2026-03-20,DAWN,2026-03-20T05:00:20.054Z
+G06,Bergen on the March equinox,60.3913,5.3221,2026-03-20,DUSK,2026-03-20T18:34:47.627Z
+G06,Bergen on the March equinox,60.3913,5.3221,2026-03-20,NAUTICAL_DAWN,2026-03-20T04:09:46.259Z
+G06,Bergen on the March equinox,60.3913,5.3221,2026-03-20,NAUTICAL_DUSK,2026-03-20T19:25:21.422Z
+G06,Bergen on the March equinox,60.3913,5.3221,2026-03-20,NIGHT_END,2026-03-20T03:14:44.082Z
+G06,Bergen on the March equinox,60.3913,5.3221,2026-03-20,NIGHT,2026-03-20T20:20:23.599Z
+G06,Bergen on the March equinox,60.3913,5.3221,2026-03-20,GOLDEN_HOUR_END,2026-03-20T06:38:02.994Z
+G06,Bergen on the March equinox,60.3913,5.3221,2026-03-20,GOLDEN_HOUR,2026-03-20T16:57:04.687Z
+G06,Bergen on the March equinox,60.3913,5.3221,2026-03-20,SOLAR_NOON,2026-03-20T11:47:33.840Z
+G06,Bergen on the March equinox,60.3913,5.3221,2026-03-20,NADIR,2026-03-19T23:47:33.840Z
+G07,Bergen on the September equinox,60.3913,5.3221,2026-09-23,SUNRISE,2026-09-23T05:25:47.981Z
+G07,Bergen on the September equinox,60.3913,5.3221,2026-09-23,SUNSET,2026-09-23T17:39:13.624Z
+G07,Bergen on the September equinox,60.3913,5.3221,2026-09-23,SUNRISE_END,2026-09-23T05:30:06.931Z
+G07,Bergen on the September equinox,60.3913,5.3221,2026-09-23,SUNSET_START,2026-09-23T17:34:54.674Z
+G07,Bergen on the September equinox,60.3913,5.3221,2026-09-23,DAWN,2026-09-23T04:43:41.331Z
+G07,Bergen on the September equinox,60.3913,5.3221,2026-09-23,DUSK,2026-09-23T18:21:20.273Z
+G07,Bergen on the September equinox,60.3913,5.3221,2026-09-23,NAUTICAL_DAWN,2026-09-23T03:53:00.259Z
+G07,Bergen on the September equinox,60.3913,5.3221,2026-09-23,NAUTICAL_DUSK,2026-09-23T19:12:01.345Z
+G07,Bergen on the September equinox,60.3913,5.3221,2026-09-23,NIGHT_END,2026-09-23T02:57:41.583Z
+G07,Bergen on the September equinox,60.3913,5.3221,2026-09-23,NIGHT,2026-09-23T20:07:20.021Z
+G07,Bergen on the September equinox,60.3913,5.3221,2026-09-23,GOLDEN_HOUR_END,2026-09-23T06:21:24.074Z
+G07,Bergen on the September equinox,60.3913,5.3221,2026-09-23,GOLDEN_HOUR,2026-09-23T16:43:37.530Z
+G07,Bergen on the September equinox,60.3913,5.3221,2026-09-23,SOLAR_NOON,2026-09-23T11:32:30.802Z
+G07,Bergen on the September equinox,60.3913,5.3221,2026-09-23,NADIR,2026-09-22T23:32:30.802Z
+G08,Bergen on the Europe/Oslo spring-forward date,60.3913,5.3221,2026-03-29,SUNRISE,2026-03-29T05:14:33.007Z
+G08,Bergen on the Europe/Oslo spring-forward date,60.3913,5.3221,2026-03-29,SUNSET,2026-03-29T18:14:55.150Z
+G08,Bergen on the Europe/Oslo spring-forward date,60.3913,5.3221,2026-03-29,SUNRISE_END,2026-03-29T05:18:54.288Z
+G08,Bergen on the Europe/Oslo spring-forward date,60.3913,5.3221,2026-03-29,SUNSET_START,2026-03-29T18:10:33.869Z
+G08,Bergen on the Europe/Oslo spring-forward date,60.3913,5.3221,2026-03-29,DAWN,2026-03-29T04:31:35.318Z
+G08,Bergen on the Europe/Oslo spring-forward date,60.3913,5.3221,2026-03-29,DUSK,2026-03-29T18:57:52.838Z
+G08,Bergen on the Europe/Oslo spring-forward date,60.3913,5.3221,2026-03-29,NAUTICAL_DAWN,2026-03-29T03:38:30.093Z
+G08,Bergen on the Europe/Oslo spring-forward date,60.3913,5.3221,2026-03-29,NAUTICAL_DUSK,2026-03-29T19:50:58.063Z
+G08,Bergen on the Europe/Oslo spring-forward date,60.3913,5.3221,2026-03-29,NIGHT_END,2026-03-29T02:37:44.621Z
+G08,Bergen on the Europe/Oslo spring-forward date,60.3913,5.3221,2026-03-29,NIGHT,2026-03-29T20:51:43.535Z
+G08,Bergen on the Europe/Oslo spring-forward date,60.3913,5.3221,2026-03-29,GOLDEN_HOUR_END,2026-03-29T06:10:00.699Z
+G08,Bergen on the Europe/Oslo spring-forward date,60.3913,5.3221,2026-03-29,GOLDEN_HOUR,2026-03-29T17:19:27.458Z
+G08,Bergen on the Europe/Oslo spring-forward date,60.3913,5.3221,2026-03-29,SOLAR_NOON,2026-03-29T11:44:44.078Z
+G08,Bergen on the Europe/Oslo spring-forward date,60.3913,5.3221,2026-03-29,NADIR,2026-03-28T23:44:44.078Z
+G09,Bergen on the Europe/Oslo fall-back date,60.3913,5.3221,2026-10-25,SUNRISE,2026-10-25T06:44:44.275Z
+G09,Bergen on the Europe/Oslo fall-back date,60.3913,5.3221,2026-10-25,SUNSET,2026-10-25T16:03:14.178Z
+G09,Bergen on the Europe/Oslo fall-back date,60.3913,5.3221,2026-10-25,SUNRISE_END,2026-10-25T06:49:27.407Z
+G09,Bergen on the Europe/Oslo fall-back date,60.3913,5.3221,2026-10-25,SUNSET_START,2026-10-25T15:58:31.045Z
+G09,Bergen on the Europe/Oslo fall-back date,60.3913,5.3221,2026-10-25,DAWN,2026-10-25T06:00:33.049Z
+G09,Bergen on the Europe/Oslo fall-back date,60.3913,5.3221,2026-10-25,DUSK,2026-10-25T16:47:25.403Z
+G09,Bergen on the Europe/Oslo fall-back date,60.3913,5.3221,2026-10-25,NAUTICAL_DAWN,2026-10-25T05:11:21.352Z
+G09,Bergen on the Europe/Oslo fall-back date,60.3913,5.3221,2026-10-25,NAUTICAL_DUSK,2026-10-25T17:36:37.100Z
+G09,Bergen on the Europe/Oslo fall-back date,60.3913,5.3221,2026-10-25,NIGHT_END,2026-10-25T04:22:40.829Z
+G09,Bergen on the Europe/Oslo fall-back date,60.3913,5.3221,2026-10-25,NIGHT,2026-10-25T18:25:17.623Z
+G09,Bergen on the Europe/Oslo fall-back date,60.3913,5.3221,2026-10-25,GOLDEN_HOUR_END,2026-10-25T07:49:02.518Z
+G09,Bergen on the Europe/Oslo fall-back date,60.3913,5.3221,2026-10-25,GOLDEN_HOUR,2026-10-25T14:58:55.934Z
+G09,Bergen on the Europe/Oslo fall-back date,60.3913,5.3221,2026-10-25,SOLAR_NOON,2026-10-25T11:23:59.226Z
+G09,Bergen on the Europe/Oslo fall-back date,60.3913,5.3221,2026-10-25,NADIR,2026-10-24T23:23:59.226Z
+G10,Tromso as the sun returns - rises but never finishes rising,69.6492,18.9553,2026-01-15,SUNRISE,2026-01-15T10:42:40.569Z
+G10,Tromso as the sun returns - rises but never finishes rising,69.6492,18.9553,2026-01-15,SUNSET,2026-01-15T11:06:28.691Z
+G10,Tromso as the sun returns - rises but never finishes rising,69.6492,18.9553,2026-01-15,SUNRISE_END,NONE
+G10,Tromso as the sun returns - rises but never finishes rising,69.6492,18.9553,2026-01-15,SUNSET_START,NONE
+G10,Tromso as the sun returns - rises but never finishes rising,69.6492,18.9553,2026-01-15,DAWN,2026-01-15T07:59:11.101Z
+G10,Tromso as the sun returns - rises but never finishes rising,69.6492,18.9553,2026-01-15,DUSK,2026-01-15T13:49:58.159Z
+G10,Tromso as the sun returns - rises but never finishes rising,69.6492,18.9553,2026-01-15,NAUTICAL_DAWN,2026-01-15T06:29:29.609Z
+G10,Tromso as the sun returns - rises but never finishes rising,69.6492,18.9553,2026-01-15,NAUTICAL_DUSK,2026-01-15T15:19:39.651Z
+G10,Tromso as the sun returns - rises but never finishes rising,69.6492,18.9553,2026-01-15,NIGHT_END,2026-01-15T05:15:23.130Z
+G10,Tromso as the sun returns - rises but never finishes rising,69.6492,18.9553,2026-01-15,NIGHT,2026-01-15T16:33:46.130Z
+G10,Tromso as the sun returns - rises but never finishes rising,69.6492,18.9553,2026-01-15,GOLDEN_HOUR_END,NONE
+G10,Tromso as the sun returns - rises but never finishes rising,69.6492,18.9553,2026-01-15,GOLDEN_HOUR,NONE
+G10,Tromso as the sun returns - rises but never finishes rising,69.6492,18.9553,2026-01-15,SOLAR_NOON,2026-01-15T10:54:34.630Z
+G10,Tromso as the sun returns - rises but never finishes rising,69.6492,18.9553,2026-01-15,NADIR,2026-01-14T22:54:34.630Z
+G11,Kiritimati - UTC+14 on a western longitude,1.8721,-157.4278,2026-06-21,SUNRISE,2026-06-21T16:25:54.819Z
+G11,Kiritimati - UTC+14 on a western longitude,1.8721,-157.4278,2026-06-21,SUNSET,2026-06-22T04:39:40.703Z
+G11,Kiritimati - UTC+14 on a western longitude,1.8721,-157.4278,2026-06-21,SUNRISE_END,2026-06-21T16:28:14.356Z
+G11,Kiritimati - UTC+14 on a western longitude,1.8721,-157.4278,2026-06-21,SUNSET_START,2026-06-22T04:37:21.166Z
+G11,Kiritimati - UTC+14 on a western longitude,1.8721,-157.4278,2026-06-21,DAWN,2026-06-21T16:03:20.543Z
+G11,Kiritimati - UTC+14 on a western longitude,1.8721,-157.4278,2026-06-21,DUSK,2026-06-22T05:02:14.978Z
+G11,Kiritimati - UTC+14 on a western longitude,1.8721,-157.4278,2026-06-21,NAUTICAL_DAWN,2026-06-21T15:37:02.182Z
+G11,Kiritimati - UTC+14 on a western longitude,1.8721,-157.4278,2026-06-21,NAUTICAL_DUSK,2026-06-22T05:28:33.339Z
+G11,Kiritimati - UTC+14 on a western longitude,1.8721,-157.4278,2026-06-21,NIGHT_END,2026-06-21T15:10:33.744Z
+G11,Kiritimati - UTC+14 on a western longitude,1.8721,-157.4278,2026-06-21,NIGHT,2026-06-22T05:55:01.778Z
+G11,Kiritimati - UTC+14 on a western longitude,1.8721,-157.4278,2026-06-21,GOLDEN_HOUR_END,2026-06-21T16:55:42.668Z
+G11,Kiritimati - UTC+14 on a western longitude,1.8721,-157.4278,2026-06-21,GOLDEN_HOUR,2026-06-22T04:09:52.854Z
+G11,Kiritimati - UTC+14 on a western longitude,1.8721,-157.4278,2026-06-21,SOLAR_NOON,2026-06-21T22:32:47.761Z
+G11,Kiritimati - UTC+14 on a western longitude,1.8721,-157.4278,2026-06-21,NADIR,2026-06-21T10:32:47.761Z
+G12,Longyearbyen polar night - no sunrise but real astronomical twilight,78.2233,15.6469,2026-12-21,SUNRISE,NONE
+G12,Longyearbyen polar night - no sunrise but real astronomical twilight,78.2233,15.6469,2026-12-21,SUNSET,NONE
+G12,Longyearbyen polar night - no sunrise but real astronomical twilight,78.2233,15.6469,2026-12-21,SUNRISE_END,NONE
+G12,Longyearbyen polar night - no sunrise but real astronomical twilight,78.2233,15.6469,2026-12-21,SUNSET_START,NONE
+G12,Longyearbyen polar night - no sunrise but real astronomical twilight,78.2233,15.6469,2026-12-21,DAWN,NONE
+G12,Longyearbyen polar night - no sunrise but real astronomical twilight,78.2233,15.6469,2026-12-21,DUSK,NONE
+G12,Longyearbyen polar night - no sunrise but real astronomical twilight,78.2233,15.6469,2026-12-21,NAUTICAL_DAWN,2026-12-21T09:59:24.982Z
+G12,Longyearbyen polar night - no sunrise but real astronomical twilight,78.2233,15.6469,2026-12-21,NAUTICAL_DUSK,2026-12-21T11:53:51.752Z
+G12,Longyearbyen polar night - no sunrise but real astronomical twilight,78.2233,15.6469,2026-12-21,NIGHT_END,2026-12-21T06:38:16.433Z
+G12,Longyearbyen polar night - no sunrise but real astronomical twilight,78.2233,15.6469,2026-12-21,NIGHT,2026-12-21T15:15:00.301Z
+G12,Longyearbyen polar night - no sunrise but real astronomical twilight,78.2233,15.6469,2026-12-21,GOLDEN_HOUR_END,NONE
+G12,Longyearbyen polar night - no sunrise but real astronomical twilight,78.2233,15.6469,2026-12-21,GOLDEN_HOUR,NONE
+G12,Longyearbyen polar night - no sunrise but real astronomical twilight,78.2233,15.6469,2026-12-21,SOLAR_NOON,2026-12-21T10:56:38.367Z
+G12,Longyearbyen polar night - no sunrise but real astronomical twilight,78.2233,15.6469,2026-12-21,NADIR,2026-12-20T22:56:38.367Z
+G13,Longyearbyen midnight sun - all twelve angle events absent,78.2233,15.6469,2026-06-21,SUNRISE,NONE
+G13,Longyearbyen midnight sun - all twelve angle events absent,78.2233,15.6469,2026-06-21,SUNSET,NONE
+G13,Longyearbyen midnight sun - all twelve angle events absent,78.2233,15.6469,2026-06-21,SUNRISE_END,NONE
+G13,Longyearbyen midnight sun - all twelve angle events absent,78.2233,15.6469,2026-06-21,SUNSET_START,NONE
+G13,Longyearbyen midnight sun - all twelve angle events absent,78.2233,15.6469,2026-06-21,DAWN,NONE
+G13,Longyearbyen midnight sun - all twelve angle events absent,78.2233,15.6469,2026-06-21,DUSK,NONE
+G13,Longyearbyen midnight sun - all twelve angle events absent,78.2233,15.6469,2026-06-21,NAUTICAL_DAWN,NONE
+G13,Longyearbyen midnight sun - all twelve angle events absent,78.2233,15.6469,2026-06-21,NAUTICAL_DUSK,NONE
+G13,Longyearbyen midnight sun - all twelve angle events absent,78.2233,15.6469,2026-06-21,NIGHT_END,NONE
+G13,Longyearbyen midnight sun - all twelve angle events absent,78.2233,15.6469,2026-06-21,NIGHT,NONE
+G13,Longyearbyen midnight sun - all twelve angle events absent,78.2233,15.6469,2026-06-21,GOLDEN_HOUR_END,NONE
+G13,Longyearbyen midnight sun - all twelve angle events absent,78.2233,15.6469,2026-06-21,GOLDEN_HOUR,NONE
+G13,Longyearbyen midnight sun - all twelve angle events absent,78.2233,15.6469,2026-06-21,SOLAR_NOON,2026-06-21T11:00:23.969Z
+G13,Longyearbyen midnight sun - all twelve angle events absent,78.2233,15.6469,2026-06-21,NADIR,2026-06-20T23:00:23.969Z
+G14,North Pole a day before the March equinox - the classifier trap,89.9900,0.0000,2026-03-19,SUNRISE,NONE
+G14,North Pole a day before the March equinox - the classifier trap,89.9900,0.0000,2026-03-19,SUNSET,NONE
+G14,North Pole a day before the March equinox - the classifier trap,89.9900,0.0000,2026-03-19,SUNRISE_END,NONE
+G14,North Pole a day before the March equinox - the classifier trap,89.9900,0.0000,2026-03-19,SUNSET_START,NONE
+G14,North Pole a day before the March equinox - the classifier trap,89.9900,0.0000,2026-03-19,DAWN,NONE
+G14,North Pole a day before the March equinox - the classifier trap,89.9900,0.0000,2026-03-19,DUSK,NONE
+G14,North Pole a day before the March equinox - the classifier trap,89.9900,0.0000,2026-03-19,NAUTICAL_DAWN,NONE
+G14,North Pole a day before the March equinox - the classifier trap,89.9900,0.0000,2026-03-19,NAUTICAL_DUSK,NONE
+G14,North Pole a day before the March equinox - the classifier trap,89.9900,0.0000,2026-03-19,NIGHT_END,NONE
+G14,North Pole a day before the March equinox - the classifier trap,89.9900,0.0000,2026-03-19,NIGHT,NONE
+G14,North Pole a day before the March equinox - the classifier trap,89.9900,0.0000,2026-03-19,GOLDEN_HOUR_END,NONE
+G14,North Pole a day before the March equinox - the classifier trap,89.9900,0.0000,2026-03-19,GOLDEN_HOUR,NONE
+G14,North Pole a day before the March equinox - the classifier trap,89.9900,0.0000,2026-03-19,SOLAR_NOON,2026-03-19T12:09:09.390Z
+G14,North Pole a day before the March equinox - the classifier trap,89.9900,0.0000,2026-03-19,NADIR,2026-03-19T00:09:09.390Z
+G15,Longyearbyen on the 2026 midnight-sun boundary day,78.2233,15.6469,2026-04-19,SUNRISE,NONE
+G15,Longyearbyen on the 2026 midnight-sun boundary day,78.2233,15.6469,2026-04-19,SUNSET,NONE
+G15,Longyearbyen on the 2026 midnight-sun boundary day,78.2233,15.6469,2026-04-19,SUNRISE_END,2026-04-18T23:56:08.088Z
+G15,Longyearbyen on the 2026 midnight-sun boundary day,78.2233,15.6469,2026-04-19,SUNSET_START,2026-04-19T21:59:14.562Z
+G15,Longyearbyen on the 2026 midnight-sun boundary day,78.2233,15.6469,2026-04-19,DAWN,NONE
+G15,Longyearbyen on the 2026 midnight-sun boundary day,78.2233,15.6469,2026-04-19,DUSK,NONE
+G15,Longyearbyen on the 2026 midnight-sun boundary day,78.2233,15.6469,2026-04-19,NAUTICAL_DAWN,NONE
+G15,Longyearbyen on the 2026 midnight-sun boundary day,78.2233,15.6469,2026-04-19,NAUTICAL_DUSK,NONE
+G15,Longyearbyen on the 2026 midnight-sun boundary day,78.2233,15.6469,2026-04-19,NIGHT_END,NONE
+G15,Longyearbyen on the 2026 midnight-sun boundary day,78.2233,15.6469,2026-04-19,NIGHT,NONE
+G15,Longyearbyen on the 2026 midnight-sun boundary day,78.2233,15.6469,2026-04-19,GOLDEN_HOUR_END,2026-04-19T03:18:27.194Z
+G15,Longyearbyen on the 2026 midnight-sun boundary day,78.2233,15.6469,2026-04-19,GOLDEN_HOUR,2026-04-19T18:36:55.456Z
+G15,Longyearbyen on the 2026 midnight-sun boundary day,78.2233,15.6469,2026-04-19,SOLAR_NOON,2026-04-19T10:57:41.325Z
+G15,Longyearbyen on the 2026 midnight-sun boundary day,78.2233,15.6469,2026-04-19,NADIR,2026-04-18T22:57:41.325Z
+G16,Longyearbyen on the September equinox - ordinary day with no deep night,78.2233,15.6469,2026-09-23,SUNRISE,2026-09-23T04:34:45.343Z
+G16,Longyearbyen on the September equinox - ordinary day with no deep night,78.2233,15.6469,2026-09-23,SUNSET,2026-09-23T17:07:41.612Z
+G16,Longyearbyen on the September equinox - ordinary day with no deep night,78.2233,15.6469,2026-09-23,SUNRISE_END,2026-09-23T04:45:12.877Z
+G16,Longyearbyen on the September equinox - ordinary day with no deep night,78.2233,15.6469,2026-09-23,SUNSET_START,2026-09-23T16:57:14.078Z
+G16,Longyearbyen on the September equinox - ordinary day with no deep night,78.2233,15.6469,2026-09-23,DAWN,2026-09-23T02:47:50.716Z
+G16,Longyearbyen on the September equinox - ordinary day with no deep night,78.2233,15.6469,2026-09-23,DUSK,2026-09-23T18:54:36.239Z
+G16,Longyearbyen on the September equinox - ordinary day with no deep night,78.2233,15.6469,2026-09-23,NAUTICAL_DAWN,NONE
+G16,Longyearbyen on the September equinox - ordinary day with no deep night,78.2233,15.6469,2026-09-23,NAUTICAL_DUSK,NONE
+G16,Longyearbyen on the September equinox - ordinary day with no deep night,78.2233,15.6469,2026-09-23,NIGHT_END,NONE
+G16,Longyearbyen on the September equinox - ordinary day with no deep night,78.2233,15.6469,2026-09-23,NIGHT,NONE
+G16,Longyearbyen on the September equinox - ordinary day with no deep night,78.2233,15.6469,2026-09-23,GOLDEN_HOUR_END,2026-09-23T06:54:18.102Z
+G16,Longyearbyen on the September equinox - ordinary day with no deep night,78.2233,15.6469,2026-09-23,GOLDEN_HOUR,2026-09-23T14:48:08.853Z
+G16,Longyearbyen on the September equinox - ordinary day with no deep night,78.2233,15.6469,2026-09-23,SOLAR_NOON,2026-09-23T10:51:13.478Z
+G16,Longyearbyen on the September equinox - ordinary day with no deep night,78.2233,15.6469,2026-09-23,NADIR,2026-09-22T22:51:13.478Z
+G17,Ushuaia on the southern winter solstice,-54.8019,-68.3030,2026-06-21,SUNRISE,2026-06-21T13:00:04.229Z
+G17,Ushuaia on the southern winter solstice,-54.8019,-68.3030,2026-06-21,SUNSET,2026-06-21T20:12:25.352Z
+G17,Ushuaia on the southern winter solstice,-54.8019,-68.3030,2026-06-21,SUNRISE_END,2026-06-21T13:05:05.453Z
+G17,Ushuaia on the southern winter solstice,-54.8019,-68.3030,2026-06-21,SUNSET_START,2026-06-21T20:07:24.127Z
+G17,Ushuaia on the southern winter solstice,-54.8019,-68.3030,2026-06-21,DAWN,2026-06-21T12:14:49.641Z
+G17,Ushuaia on the southern winter solstice,-54.8019,-68.3030,2026-06-21,DUSK,2026-06-21T20:57:39.940Z
+G17,Ushuaia on the southern winter solstice,-54.8019,-68.3030,2026-06-21,NAUTICAL_DAWN,2026-06-21T11:27:26.213Z
+G17,Ushuaia on the southern winter solstice,-54.8019,-68.3030,2026-06-21,NAUTICAL_DUSK,2026-06-21T21:45:03.367Z
+G17,Ushuaia on the southern winter solstice,-54.8019,-68.3030,2026-06-21,NIGHT_END,2026-06-21T10:43:11.845Z
+G17,Ushuaia on the southern winter solstice,-54.8019,-68.3030,2026-06-21,NIGHT,2026-06-21T22:29:17.736Z
+G17,Ushuaia on the southern winter solstice,-54.8019,-68.3030,2026-06-21,GOLDEN_HOUR_END,2026-06-21T14:13:32.136Z
+G17,Ushuaia on the southern winter solstice,-54.8019,-68.3030,2026-06-21,GOLDEN_HOUR,2026-06-21T18:58:57.444Z
+G17,Ushuaia on the southern winter solstice,-54.8019,-68.3030,2026-06-21,SOLAR_NOON,2026-06-21T16:36:14.790Z
+G17,Ushuaia on the southern winter solstice,-54.8019,-68.3030,2026-06-21,NADIR,2026-06-21T04:36:14.790Z
+G18,Suva Fiji east of the antimeridian - near the julianCycle boundary,-18.1416,178.4419,2026-06-21,SUNRISE,2026-06-20T18:37:56.136Z
+G18,Suva Fiji east of the antimeridian - near the julianCycle boundary,-18.1416,178.4419,2026-06-21,SUNSET,2026-06-21T05:40:19.161Z
+G18,Suva Fiji east of the antimeridian - near the julianCycle boundary,-18.1416,178.4419,2026-06-21,SUNRISE_END,2026-06-20T18:40:24.115Z
+G18,Suva Fiji east of the antimeridian - near the julianCycle boundary,-18.1416,178.4419,2026-06-21,SUNSET_START,2026-06-21T05:37:51.182Z
+G18,Suva Fiji east of the antimeridian - near the julianCycle boundary,-18.1416,178.4419,2026-06-21,DAWN,2026-06-20T18:14:12.326Z
+G18,Suva Fiji east of the antimeridian - near the julianCycle boundary,-18.1416,178.4419,2026-06-21,DUSK,2026-06-21T06:04:02.971Z
+G18,Suva Fiji east of the antimeridian - near the julianCycle boundary,-18.1416,178.4419,2026-06-21,NAUTICAL_DAWN,2026-06-20T17:46:59.726Z
+G18,Suva Fiji east of the antimeridian - near the julianCycle boundary,-18.1416,178.4419,2026-06-21,NAUTICAL_DUSK,2026-06-21T06:31:15.571Z
+G18,Suva Fiji east of the antimeridian - near the julianCycle boundary,-18.1416,178.4419,2026-06-21,NIGHT_END,2026-06-20T17:20:04.790Z
+G18,Suva Fiji east of the antimeridian - near the julianCycle boundary,-18.1416,178.4419,2026-06-21,NIGHT,2026-06-21T06:58:10.506Z
+G18,Suva Fiji east of the antimeridian - near the julianCycle boundary,-18.1416,178.4419,2026-06-21,GOLDEN_HOUR_END,2026-06-20T19:09:51.961Z
+G18,Suva Fiji east of the antimeridian - near the julianCycle boundary,-18.1416,178.4419,2026-06-21,GOLDEN_HOUR,2026-06-21T05:08:23.336Z
+G18,Suva Fiji east of the antimeridian - near the julianCycle boundary,-18.1416,178.4419,2026-06-21,SOLAR_NOON,2026-06-21T00:09:07.648Z
+G18,Suva Fiji east of the antimeridian - near the julianCycle boundary,-18.1416,178.4419,2026-06-21,NADIR,2026-06-20T12:09:07.648Z
+G19,Apia Samoa - UTC+13 west of the antimeridian,-13.8333,-171.7667,2026-06-21,SUNRISE,2026-06-21T17:50:54.933Z
+G19,Apia Samoa - UTC+13 west of the antimeridian,-13.8333,-171.7667,2026-06-21,SUNSET,2026-06-22T05:09:24.231Z
+G19,Apia Samoa - UTC+13 west of the antimeridian,-13.8333,-171.7667,2026-06-21,SUNRISE_END,2026-06-21T17:53:19.178Z
+G19,Apia Samoa - UTC+13 west of the antimeridian,-13.8333,-171.7667,2026-06-21,SUNSET_START,2026-06-22T05:06:59.986Z
+G19,Apia Samoa - UTC+13 west of the antimeridian,-13.8333,-171.7667,2026-06-21,DAWN,2026-06-21T17:27:44.184Z
+G19,Apia Samoa - UTC+13 west of the antimeridian,-13.8333,-171.7667,2026-06-21,DUSK,2026-06-22T05:32:34.980Z
+G19,Apia Samoa - UTC+13 west of the antimeridian,-13.8333,-171.7667,2026-06-21,NAUTICAL_DAWN,2026-06-21T17:01:03.730Z
+G19,Apia Samoa - UTC+13 west of the antimeridian,-13.8333,-171.7667,2026-06-21,NAUTICAL_DUSK,2026-06-22T05:59:15.434Z
+G19,Apia Samoa - UTC+13 west of the antimeridian,-13.8333,-171.7667,2026-06-21,NIGHT_END,2026-06-21T16:34:35.229Z
+G19,Apia Samoa - UTC+13 west of the antimeridian,-13.8333,-171.7667,2026-06-21,NIGHT,2026-06-22T06:25:43.935Z
+G19,Apia Samoa - UTC+13 west of the antimeridian,-13.8333,-171.7667,2026-06-21,GOLDEN_HOUR_END,2026-06-21T18:21:57.472Z
+G19,Apia Samoa - UTC+13 west of the antimeridian,-13.8333,-171.7667,2026-06-21,GOLDEN_HOUR,2026-06-22T04:38:21.692Z
+G19,Apia Samoa - UTC+13 west of the antimeridian,-13.8333,-171.7667,2026-06-21,SOLAR_NOON,2026-06-21T23:30:09.582Z
+G19,Apia Samoa - UTC+13 west of the antimeridian,-13.8333,-171.7667,2026-06-21,NADIR,2026-06-21T11:30:09.582Z
+G20,Sydney on the southern summer solstice,-33.8688,151.2093,2026-12-21,SUNRISE,2026-12-20T18:41:58.350Z
+G20,Sydney on the southern summer solstice,-33.8688,151.2093,2026-12-21,SUNSET,2026-12-21T09:06:26.717Z
+G20,Sydney on the southern summer solstice,-33.8688,151.2093,2026-12-21,SUNRISE_END,2026-12-20T18:44:54.589Z
+G20,Sydney on the southern summer solstice,-33.8688,151.2093,2026-12-21,SUNSET_START,2026-12-21T09:03:30.479Z
+G20,Sydney on the southern summer solstice,-33.8688,151.2093,2026-12-21,DAWN,2026-12-20T18:12:48.918Z
+G20,Sydney on the southern summer solstice,-33.8688,151.2093,2026-12-21,DUSK,2026-12-21T09:35:36.150Z
+G20,Sydney on the southern summer solstice,-33.8688,151.2093,2026-12-21,NAUTICAL_DAWN,2026-12-20T17:36:55.560Z
+G20,Sydney on the southern summer solstice,-33.8688,151.2093,2026-12-21,NAUTICAL_DUSK,2026-12-21T10:11:29.507Z
+G20,Sydney on the southern summer solstice,-33.8688,151.2093,2026-12-21,NIGHT_END,2026-12-20T16:57:36.554Z
+G20,Sydney on the southern summer solstice,-33.8688,151.2093,2026-12-21,NIGHT,2026-12-21T10:50:48.513Z
+G20,Sydney on the southern summer solstice,-33.8688,151.2093,2026-12-21,GOLDEN_HOUR_END,2026-12-20T19:18:50.483Z
+G20,Sydney on the southern summer solstice,-33.8688,151.2093,2026-12-21,GOLDEN_HOUR,2026-12-21T08:29:34.585Z
+G20,Sydney on the southern summer solstice,-33.8688,151.2093,2026-12-21,SOLAR_NOON,2026-12-21T01:54:12.534Z
+G20,Sydney on the southern summer solstice,-33.8688,151.2093,2026-12-21,NADIR,2026-12-20T13:54:12.534Z
+G21,Arctic Circle at midwinter - only the golden-hour events absent,66.0000,25.0000,2026-12-21,SUNRISE,2026-12-21T08:55:55.759Z
+G21,Arctic Circle at midwinter - only the golden-hour events absent,66.0000,25.0000,2026-12-21,SUNSET,2026-12-21T11:42:29.988Z
+G21,Arctic Circle at midwinter - only the golden-hour events absent,66.0000,25.0000,2026-12-21,SUNRISE_END,2026-12-21T09:13:51.809Z
+G21,Arctic Circle at midwinter - only the golden-hour events absent,66.0000,25.0000,2026-12-21,SUNSET_START,2026-12-21T11:24:33.938Z
+G21,Arctic Circle at midwinter - only the golden-hour events absent,66.0000,25.0000,2026-12-21,DAWN,2026-12-21T07:14:51.693Z
+G21,Arctic Circle at midwinter - only the golden-hour events absent,66.0000,25.0000,2026-12-21,DUSK,2026-12-21T13:23:34.054Z
+G21,Arctic Circle at midwinter - only the golden-hour events absent,66.0000,25.0000,2026-12-21,NAUTICAL_DAWN,2026-12-21T05:57:40.451Z
+G21,Arctic Circle at midwinter - only the golden-hour events absent,66.0000,25.0000,2026-12-21,NAUTICAL_DUSK,2026-12-21T14:40:45.296Z
+G21,Arctic Circle at midwinter - only the golden-hour events absent,66.0000,25.0000,2026-12-21,NIGHT_END,2026-12-21T04:52:42.008Z
+G21,Arctic Circle at midwinter - only the golden-hour events absent,66.0000,25.0000,2026-12-21,NIGHT,2026-12-21T15:45:43.739Z
+G21,Arctic Circle at midwinter - only the golden-hour events absent,66.0000,25.0000,2026-12-21,GOLDEN_HOUR_END,NONE
+G21,Arctic Circle at midwinter - only the golden-hour events absent,66.0000,25.0000,2026-12-21,GOLDEN_HOUR,NONE
+G21,Arctic Circle at midwinter - only the golden-hour events absent,66.0000,25.0000,2026-12-21,SOLAR_NOON,2026-12-21T10:19:12.874Z
+G21,Arctic Circle at midwinter - only the golden-hour events absent,66.0000,25.0000,2026-12-21,NADIR,2026-12-20T22:19:12.874Z
+G22,Singapore on the December solstice - near-equatorial baseline,1.3521,103.8198,2026-12-21,SUNRISE,2026-12-20T23:02:32.547Z
+G22,Singapore on the December solstice - near-equatorial baseline,1.3521,103.8198,2026-12-21,SUNSET,2026-12-21T11:05:07.069Z
+G22,Singapore on the December solstice - near-equatorial baseline,1.3521,103.8198,2026-12-21,SUNRISE_END,2026-12-20T23:04:52.000Z
+G22,Singapore on the December solstice - near-equatorial baseline,1.3521,103.8198,2026-12-21,SUNSET_START,2026-12-21T11:02:47.616Z
+G22,Singapore on the December solstice - near-equatorial baseline,1.3521,103.8198,2026-12-21,DAWN,2026-12-20T22:40:00.894Z
+G22,Singapore on the December solstice - near-equatorial baseline,1.3521,103.8198,2026-12-21,DUSK,2026-12-21T11:27:38.722Z
+G22,Singapore on the December solstice - near-equatorial baseline,1.3521,103.8198,2026-12-21,NAUTICAL_DAWN,2026-12-20T22:13:49.863Z
+G22,Singapore on the December solstice - near-equatorial baseline,1.3521,103.8198,2026-12-21,NAUTICAL_DUSK,2026-12-21T11:53:49.754Z
+G22,Singapore on the December solstice - near-equatorial baseline,1.3521,103.8198,2026-12-21,NIGHT_END,2026-12-20T21:47:33.905Z
+G22,Singapore on the December solstice - near-equatorial baseline,1.3521,103.8198,2026-12-21,NIGHT,2026-12-21T12:20:05.711Z
+G22,Singapore on the December solstice - near-equatorial baseline,1.3521,103.8198,2026-12-21,GOLDEN_HOUR_END,2026-12-20T23:32:21.945Z
+G22,Singapore on the December solstice - near-equatorial baseline,1.3521,103.8198,2026-12-21,GOLDEN_HOUR,2026-12-21T10:35:17.672Z
+G22,Singapore on the December solstice - near-equatorial baseline,1.3521,103.8198,2026-12-21,SOLAR_NOON,2026-12-21T05:03:49.808Z
+G22,Singapore on the December solstice - near-equatorial baseline,1.3521,103.8198,2026-12-21,NADIR,2026-12-20T17:03:49.808Z
+G23,Santiago on the America/Santiago DST start date,-33.4489,-70.6693,2026-09-06,SUNRISE,2026-09-06T10:55:37.214Z
+G23,Santiago on the America/Santiago DST start date,-33.4489,-70.6693,2026-09-06,SUNSET,2026-09-06T22:29:31.927Z
+G23,Santiago on the America/Santiago DST start date,-33.4489,-70.6693,2026-09-06,SUNRISE_END,2026-09-06T10:58:11.790Z
+G23,Santiago on the America/Santiago DST start date,-33.4489,-70.6693,2026-09-06,SUNSET_START,2026-09-06T22:26:57.350Z
+G23,Santiago on the America/Santiago DST start date,-33.4489,-70.6693,2026-09-06,DAWN,2026-09-06T10:30:44.005Z
+G23,Santiago on the America/Santiago DST start date,-33.4489,-70.6693,2026-09-06,DUSK,2026-09-06T22:54:25.136Z
+G23,Santiago on the America/Santiago DST start date,-33.4489,-70.6693,2026-09-06,NAUTICAL_DAWN,2026-09-06T10:01:56.988Z
+G23,Santiago on the America/Santiago DST start date,-33.4489,-70.6693,2026-09-06,NAUTICAL_DUSK,2026-09-06T23:23:12.153Z
+G23,Santiago on the America/Santiago DST start date,-33.4489,-70.6693,2026-09-06,NIGHT_END,2026-09-06T09:33:09.531Z
+G23,Santiago on the America/Santiago DST start date,-33.4489,-70.6693,2026-09-06,NIGHT,2026-09-06T23:51:59.609Z
+G23,Santiago on the America/Santiago DST start date,-33.4489,-70.6693,2026-09-06,GOLDEN_HOUR_END,2026-09-06T11:28:50.295Z
+G23,Santiago on the America/Santiago DST start date,-33.4489,-70.6693,2026-09-06,GOLDEN_HOUR,2026-09-06T21:56:18.846Z
+G23,Santiago on the America/Santiago DST start date,-33.4489,-70.6693,2026-09-06,SOLAR_NOON,2026-09-06T16:42:34.570Z
+G23,Santiago on the America/Santiago DST start date,-33.4489,-70.6693,2026-09-06,NADIR,2026-09-06T04:42:34.570Z
+G24,Reykjavik at midsummer - sunset crosses local midnight,64.1466,-21.9426,2026-06-21,SUNRISE,2026-06-21T02:56:22.432Z
+G24,Reykjavik at midsummer - sunset crosses local midnight,64.1466,-21.9426,2026-06-21,SUNSET,2026-06-22T00:05:11.015Z
+G24,Reykjavik at midsummer - sunset crosses local midnight,64.1466,-21.9426,2026-06-21,SUNRISE_END,2026-06-21T03:09:57.551Z
+G24,Reykjavik at midsummer - sunset crosses local midnight,64.1466,-21.9426,2026-06-21,SUNSET_START,2026-06-21T23:51:35.896Z
+G24,Reykjavik at midsummer - sunset crosses local midnight,64.1466,-21.9426,2026-06-21,DAWN,NONE
+G24,Reykjavik at midsummer - sunset crosses local midnight,64.1466,-21.9426,2026-06-21,DUSK,NONE
+G24,Reykjavik at midsummer - sunset crosses local midnight,64.1466,-21.9426,2026-06-21,NAUTICAL_DAWN,NONE
+G24,Reykjavik at midsummer - sunset crosses local midnight,64.1466,-21.9426,2026-06-21,NAUTICAL_DUSK,NONE
+G24,Reykjavik at midsummer - sunset crosses local midnight,64.1466,-21.9426,2026-06-21,NIGHT_END,NONE
+G24,Reykjavik at midsummer - sunset crosses local midnight,64.1466,-21.9426,2026-06-21,NIGHT,NONE
+G24,Reykjavik at midsummer - sunset crosses local midnight,64.1466,-21.9426,2026-06-21,GOLDEN_HOUR_END,2026-06-21T04:53:33.298Z
+G24,Reykjavik at midsummer - sunset crosses local midnight,64.1466,-21.9426,2026-06-21,GOLDEN_HOUR,2026-06-21T22:08:00.149Z
+G24,Reykjavik at midsummer - sunset crosses local midnight,64.1466,-21.9426,2026-06-21,SOLAR_NOON,2026-06-21T13:30:46.723Z
+G24,Reykjavik at midsummer - sunset crosses local midnight,64.1466,-21.9426,2026-06-21,NADIR,2026-06-21T01:30:46.723Z
+G25,Synthetic tie longitude - julianCycle rounding-mode discriminator,-18.1416,-179.6760,2026-06-22,SUNRISE,2026-06-22T18:30:48.503Z
+G25,Synthetic tie longitude - julianCycle rounding-mode discriminator,-18.1416,-179.6760,2026-06-22,SUNSET,2026-06-23T05:33:11.989Z
+G25,Synthetic tie longitude - julianCycle rounding-mode discriminator,-18.1416,-179.6760,2026-06-22,SUNRISE_END,2026-06-22T18:33:16.478Z
+G25,Synthetic tie longitude - julianCycle rounding-mode discriminator,-18.1416,-179.6760,2026-06-22,SUNSET_START,2026-06-23T05:30:44.013Z
+G25,Synthetic tie longitude - julianCycle rounding-mode discriminator,-18.1416,-179.6760,2026-06-22,DAWN,2026-06-22T18:07:04.721Z
+G25,Synthetic tie longitude - julianCycle rounding-mode discriminator,-18.1416,-179.6760,2026-06-22,DUSK,2026-06-23T05:56:55.770Z
+G25,Synthetic tie longitude - julianCycle rounding-mode discriminator,-18.1416,-179.6760,2026-06-22,NAUTICAL_DAWN,2026-06-22T17:39:52.151Z
+G25,Synthetic tie longitude - julianCycle rounding-mode discriminator,-18.1416,-179.6760,2026-06-22,NAUTICAL_DUSK,2026-06-23T06:24:08.341Z
+G25,Synthetic tie longitude - julianCycle rounding-mode discriminator,-18.1416,-179.6760,2026-06-22,NIGHT_END,2026-06-22T17:12:57.243Z
+G25,Synthetic tie longitude - julianCycle rounding-mode discriminator,-18.1416,-179.6760,2026-06-22,NIGHT,2026-06-23T06:51:03.249Z
+G25,Synthetic tie longitude - julianCycle rounding-mode discriminator,-18.1416,-179.6760,2026-06-22,GOLDEN_HOUR_END,2026-06-22T19:02:44.285Z
+G25,Synthetic tie longitude - julianCycle rounding-mode discriminator,-18.1416,-179.6760,2026-06-22,GOLDEN_HOUR,2026-06-23T05:01:16.207Z
+G25,Synthetic tie longitude - julianCycle rounding-mode discriminator,-18.1416,-179.6760,2026-06-22,SOLAR_NOON,2026-06-23T00:02:00.246Z
+G25,Synthetic tie longitude - julianCycle rounding-mode discriminator,-18.1416,-179.6760,2026-06-22,NADIR,2026-06-22T12:02:00.246Z

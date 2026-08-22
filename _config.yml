@@ -17,3 +17,6 @@ exclude:
   - README.md
   - LICENSE
   - update_cities.py
+  - fastlane/
+  - NOTICE
+  - DISCLAIMER.md

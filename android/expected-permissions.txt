@@ -1,0 +1,43 @@
+# Every permission this APK is allowed to declare, one per line.
+#
+# CI diffs the built APK against this file and fails on any difference, in
+# EITHER direction: an unexpected permission fails the build, and so does a
+# listed one that has silently disappeared. That second case matters because a
+# missing RECEIVE_BOOT_COMPLETED would not break the build, it would just make
+# every alarm die at the next reboot.
+#
+# Release 1.0.0 was information-only and declared nothing at all. Release 1.1.0
+# adds solar alarms, and with them the nine entries below. Every one of them is
+# an install-time permission, so all nine appear in the F-Droid and Zapstore
+# listing for anyone who installs 1.1.0, whether or not they ever create an
+# alarm. Only the user-visible grants are deferred; see the permission section
+# of README.md, which must stay in step with this list.
+#
+# Comparison is against `aapt dump permissions`, which reports the permission
+# name only. Attributes such as SCHEDULE_EXACT_ALARM's maxSdkVersion="32" are
+# therefore invisible here and live solely in AndroidManifest.xml.
+#
+# Add or remove an entry in the same commit that changes the manifest, never
+# before and never after, so the two can never drift apart unnoticed.
+#
+# Deliberately absent, and each absence is a claim the diff keeps honest:
+#   INTERNET, ACCESS_NETWORK_STATE  - the app has no network code at all
+#   ACCESS_COARSE_LOCATION, ACCESS_FINE_LOCATION
+#                                   - coordinates come from the bundled city
+#                                     catalogue or from typed numbers, never
+#                                     from the device
+#   REQUEST_IGNORE_BATTERY_OPTIMIZATIONS
+#                                   - setAlarmClock is already exempt from Doze,
+#                                     so asking would buy nothing
+#   SYSTEM_ALERT_WINDOW, QUERY_ALL_PACKAGES
+#                                   - never needed by an alarm clock
+
+android.permission.FOREGROUND_SERVICE
+android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK
+android.permission.POST_NOTIFICATIONS
+android.permission.RECEIVE_BOOT_COMPLETED
+android.permission.SCHEDULE_EXACT_ALARM
+android.permission.USE_EXACT_ALARM
+android.permission.USE_FULL_SCREEN_INTENT
+android.permission.VIBRATE
+android.permission.WAKE_LOCK

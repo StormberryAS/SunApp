@@ -1,0 +1,37 @@
+SunApp calculates sunrise, solar noon and sunset for any location on Earth,
+handles the timezone properly, and says plainly when the sun does not rise or
+set at all.
+
+It can also wake you by the sun rather than by the clock. Set an alarm for six
+hours before solar noon, or eight hours after sunrise, and it recomputes every
+day as the seasons move. When you build a rule it shows you the next thirty
+days of fire times, so a rule that drifts to the afternoon in December is
+visible when you set it rather than discovered in November. During polar night
+it falls back to solar noon and tells you why.
+
+It never touches the network. There is no INTERNET permission, so it cannot,
+and there is no location permission either: coordinates come from a bundled
+catalogue of 25,007 cities or from numbers you type. Check for yourself:
+
+    aapt dump permissions SunApp-v1.1.0.apk
+
+The nine permissions you will see are for the alarm feature and are documented
+one sentence each in the repository README. Sun times need none of them, and no
+dialog appears until you create your first alarm.
+
+- Search 25,007 cities, accent-insensitive in both directions: "tromso" finds
+  Tromso with the slash, "Herat" finds the one with the macron. English
+  exonyms work too, so "Gothenburg" finds Goteborg and "Cologne" finds Koln.
+- Every city carries its own IANA timezone. Times render in the place's zone,
+  not your phone's.
+- Any date, past or future.
+- Midnight Sun and Polar Night are detected geometrically and labelled, not
+  shown as a blank or an error.
+
+The same maths and the same catalogue run on the web at sun.stormberry.as, and
+the Kotlin port is tested against a golden corpus generated from the JavaScript
+one, so the two cannot silently disagree about when the sun comes up.
+
+Built by Stormberry AS in Askoy, Norway, where the gap between a December
+sunrise and a June one is nine and a half hours and the question stops being
+academic.

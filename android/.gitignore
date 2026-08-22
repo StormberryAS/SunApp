@@ -1,0 +1,15 @@
+# Signing credentials never enter git. The keystore itself lives outside the repo
+# tree entirely (see android/README.md), so even `git add -f` cannot capture it.
+keystore.properties
+*.jks
+*.keystore
+
+local.properties
+.gradle/
+build/
+app/build/
+captures/
+.cxx/
+*.iml
+.idea/
+.kotlin/

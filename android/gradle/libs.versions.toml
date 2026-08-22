@@ -1,0 +1,33 @@
+[versions]
+desugarJdkLibs = "2.1.5"   # pinned deliberately; check the release date before bumping
+# Pinned deliberately. See android/README.md "Toolchain" before bumping anything here.
+agp = "9.3.1"                 # AGP 9.3.x: min+default Gradle 9.5.0, min+default JDK 17, built-in Kotlin 2.2.10
+kotlin = "2.2.10"             # MUST equal the Kotlin that AGP 9.3.1 bundles, or the Compose plugin mismatches
+composeBom = "2026.06.01"     # -> material3 1.4.0, compose ui/foundation/runtime 1.11.4
+activityCompose = "1.13.0"
+coreKtx = "1.19.0"
+lifecycleRuntimeKtx = "2.11.0"
+junit = "4.13.2"
+# Unit-test classpath only. The framework ships org.json, but the mockable android.jar
+# stubs every method to throw, so AlarmStore is untestable on the JVM without a real
+# implementation ahead of the stub. Pinned to a version that has been on Maven Central
+# for months rather than the newest release.
+json = "20260522"
+
+[libraries]
+desugar-jdk-libs = { group = "com.android.tools", name = "desugar_jdk_libs", version.ref = "desugarJdkLibs" }
+junit = { group = "junit", name = "junit", version.ref = "junit" }
+json = { group = "org.json", name = "json", version.ref = "json" }
+androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
+androidx-lifecycle-runtime-ktx = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "lifecycleRuntimeKtx" }
+androidx-activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "activityCompose" }
+androidx-compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "composeBom" }
+androidx-compose-ui = { group = "androidx.compose.ui", name = "ui" }
+androidx-compose-ui-graphics = { group = "androidx.compose.ui", name = "ui-graphics" }
+androidx-compose-ui-tooling = { group = "androidx.compose.ui", name = "ui-tooling" }
+androidx-compose-ui-tooling-preview = { group = "androidx.compose.ui", name = "ui-tooling-preview" }
+androidx-compose-material3 = { group = "androidx.compose.material3", name = "material3" }
+
+[plugins]
+android-application = { id = "com.android.application", version.ref = "agp" }
+compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }

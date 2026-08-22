@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--
+      Compose draws everything, so this theme only needs to cover the window before
+      the first frame. NoActionBar plus the app background stops the launch flash.
+    -->
+    <style name="Theme.SunApp" parent="android:Theme.Material.NoActionBar">
+        <item name="android:windowBackground">@color/stormberry_background</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+    </style>
+</resources>

@@ -1,0 +1,36 @@
+Third-Party Notices
+===================
+
+Moved out of LICENSE so that GitHub, F-Droid and other licence scanners can
+detect the MIT licence. A LICENSE file with anything appended after the MIT
+text is reported as NOASSERTION, which reads as "unlicensed" to tooling and
+blocks F-Droid inclusion.
+
+-------------------
+
+SunCalc (suncalc.js)
+  License:   BSD 2-Clause
+  Author:    Vladimir Agafonkin
+  Source:    https://github.com/mourner/suncalc
+  Copyright (c) 2011-2015, Vladimir Agafonkin. All rights reserved.
+
+  Redistribution and use in source and binary forms, with or without
+  modification, are permitted provided that the following conditions are met:
+  1. Redistributions of source code must retain the above copyright notice,
+     this list of conditions and the following disclaimer.
+  2. Redistributions in binary form must reproduce the above copyright notice,
+     this list of conditions and the following disclaimer in the documentation
+     and/or other materials provided with the distribution.
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+  AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+  IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+  ARE DISCLAIMED.
+
+Inter (fonts/inter/)
+  License:   SIL Open Font License 1.1 (OFL-1.1)
+  Author:    Rasmus Andersson
+  Source:    https://rsms.me/inter/
+  Copyright (c) 2016 The Inter Project Authors
+
+  This Font Software is licensed under the SIL Open Font License, Version 1.1.
+  Full license text: https://scripts.sil.org/OFL
