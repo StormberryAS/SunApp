@@ -17,9 +17,9 @@ from [Zapstore](https://zapstore.dev).
 The release carries a `.sha256` alongside it and a signed build attestation:
 
 ```sh
-sha256sum -c SunApp-v1.0.0.apk.sha256
-gh attestation verify SunApp-v1.0.0.apk -R StormberryAS/SunApp
-apksigner verify --print-certs SunApp-v1.0.0.apk
+sha256sum -c SunApp-v1.1.0.apk.sha256
+gh attestation verify SunApp-v1.1.0.apk -R StormberryAS/SunApp
+apksigner verify --print-certs SunApp-v1.1.0.apk
 ```
 
 And the claim worth checking yourself:
@@ -46,9 +46,10 @@ permission of any kind.
 
 ## Permissions
 
-Release 1.1.0 adds solar alarms, and with them nine permissions. Release 1.0.0
-is information-only, declares none at all, and stays on the Releases page as an
-audit reference for what this app does with nothing granted.
+Release 1.1.0 is the first release and adds solar alarms, and with them nine
+permissions. The information-only 1.0.0 described in the implementation plan was
+never cut as a separate artefact, so there is no zero-permission build on the
+Releases page to compare against.
 
 All nine are **install-time** permissions. Android provides no way to defer one,
 so all nine appear in the F-Droid and Zapstore listing for 1.1.0 from the moment
