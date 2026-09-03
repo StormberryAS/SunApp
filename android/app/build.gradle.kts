@@ -153,6 +153,20 @@ android {
 }
 
 kotlin {
+    // The JDK that COMPILES, as distinct from the bytecode level, which stays at 17 in
+    // compileOptions above and in jvmTarget below. Pinned to 21 because that is what
+    // .github/workflows/android-release.yml installs, and a third party rebuilding from a
+    // tag is meant to get the same bytes as the released artefact: the compiler version is
+    // part of the build definition, not a property of whoever is building.
+    //
+    // Without this, Gradle compiles with whatever JVM happens to run the daemon. On this
+    // machine the default `java` is /usr/lib/jvm/java-25-openjdk-amd64, which on Debian 13
+    // is a JRE with no compiler, so the build died outright with "Toolchain installation ...
+    // does not provide the required capabilities: [JAVA_COMPILER]". Gradle auto-detects
+    // installed JDKs, so any vendor's 21 satisfies this and no machine-specific path is
+    // written into the repo.
+    jvmToolchain(21)
+
     compilerOptions {
         jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
         freeCompilerArgs.addAll("-Xjvm-default=all")
