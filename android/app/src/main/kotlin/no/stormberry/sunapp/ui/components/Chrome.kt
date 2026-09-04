@@ -238,7 +238,12 @@ fun AppFooter(modifier: Modifier = Modifier) {
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Text(
-            text = "No permissions. No network. No tracking.",
+            // "No permissions" was false: the APK declares nine, all of them for the alarm
+            // (exact alarm, notifications, boot-completed, wake lock, vibrate, full-screen
+            // intent, foreground service). What IS true, and is the headline the manifest
+            // comment at line 69 defends, is that there is no INTERNET permission at all, so
+            // the app cannot reach the network even if it wanted to. Corrected 2026-09-04.
+            text = "Alarm permissions only. No internet. No tracking.",
             style = MaterialTheme.typography.bodySmall,
             color = Sun.TextMuted,
             textAlign = TextAlign.Center,
