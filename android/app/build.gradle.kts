@@ -42,8 +42,13 @@ android {
         // install-time permissions, so a 1.0.0 label would misdescribe the
         // binary. The information-only 1.0.0 described in the plan was never
         // cut as a separate artefact; see android/README.md "Releases".
-        versionCode = 2
-        versionName = "1.1.0"
+        //
+        // 1.1.1 (code 3): the footer. android-v1.1.0 was tagged BEFORE the 2026-09-04
+        // correction of the permissions line, so every installed copy still claimed "No
+        // permissions", which was false: the APK declares nine, all for the alarm. Zapstore
+        // was still serving code 2 on 2026-09-05, which is how the stale claim was noticed.
+        versionCode = 3
+        versionName = "1.1.1"
 
         // No instrumentation tests, no test runner, nothing that pulls in extra permissions.
         // Density-split PNGs are generated at build time from vectors and are a source of

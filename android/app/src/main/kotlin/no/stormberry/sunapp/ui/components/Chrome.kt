@@ -1,6 +1,7 @@
 package no.stormberry.sunapp.ui.components
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -26,6 +27,9 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -233,6 +237,7 @@ fun Notice(
 /** The claim that the manifest backs up, plus the house lockup. */
 @Composable
 fun AppFooter(modifier: Modifier = Modifier) {
+    val uriHandler = LocalUriHandler.current
     Column(
         modifier = modifier.fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -241,27 +246,66 @@ fun AppFooter(modifier: Modifier = Modifier) {
             // "No permissions" was false: the APK declares nine, all of them for the alarm
             // (exact alarm, notifications, boot-completed, wake lock, vibrate, full-screen
             // intent, foreground service). What IS true, and is the headline the manifest
-            // comment at line 69 defends, is that there is no INTERNET permission at all, so
-            // the app cannot reach the network even if it wanted to. Corrected 2026-09-04.
+            // comment defends, is that there is no INTERNET permission at all, so the app
+            // cannot reach the network even if it wanted to. Corrected 2026-09-04; note it
+            // did not reach a user until the release that carries this file, because
+            // android-v1.1.0 was tagged before the correction.
             text = "Alarm permissions only. No internet. No tracking.",
             style = MaterialTheme.typography.bodySmall,
             color = Sun.TextMuted,
             textAlign = TextAlign.Center,
         )
+
+        Spacer(Modifier.height(12.dp))
+
+        // The two documents a user is entitled to read before trusting an app. Underlined as
+        // well as coloured, because colour alone is not an accessible affordance for a link.
+        //
+        // Opening these needs no INTERNET permission: LocalUriHandler fires an ACTION_VIEW
+        // intent and the BROWSER does the fetching, in its own process. Do not "fix" this by
+        // adding the permission; the privacy claim above rests on its absence, and the CI
+        // diff against expected-permissions.txt is what keeps that honest.
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            FooterLink("Privacy") { uriHandler.openUri(PRIVACY_URL) }
+            Text("·", style = MaterialTheme.typography.bodySmall, color = Sun.TextMuted)
+            FooterLink("Disclaimer") { uriHandler.openUri(DISCLAIMER_URL) }
+        }
+
         Spacer(Modifier.height(16.dp))
+
         Image(
             painter = painterResource(R.drawable.ic_stormberry_logo),
-            // Decorative: the wordmark inside the drawable repeats the line above,
-            // and nothing here is a link, so there is nothing to announce.
-            contentDescription = null,
+            // No longer decorative: it is now the link to stormberry.as, so it needs a name a
+            // screen reader can announce and a Role that says what activating it does.
+            contentDescription = "Stormberry AS website",
             // Full white would out-shout the app's own content this far down.
             alpha = 0.72f,
-            // Height only: the drawable carries the lockup's proportions, so the
-            // width follows from them and never has to be kept in sync.
-            modifier = Modifier.height(24.dp),
+            // Height only: the drawable carries the lockup's proportions, so the width
+            // follows from them and never has to be kept in sync.
+            modifier = Modifier
+                .height(24.dp)
+                .clickable(role = Role.Button) { uriHandler.openUri(SITE_URL) },
         )
     }
 }
+
+@Composable
+private fun FooterLink(label: String, onClick: () -> Unit) {
+    Text(
+        text = label,
+        style = MaterialTheme.typography.bodySmall,
+        color = Sun.TextPrimary,
+        textDecoration = TextDecoration.Underline,
+        modifier = Modifier.clickable(role = Role.Button, onClick = onClick),
+    )
+}
+
+private const val SITE_URL = "https://stormberry.as"
+private const val PRIVACY_URL = "https://stormberry.as/privacy.html"
+private const val DISCLAIMER_URL = "https://sun.stormberry.as/disclaimer.html"
 
 /**
  * The web app's blurred header glow and its cool lower wash, as two radial

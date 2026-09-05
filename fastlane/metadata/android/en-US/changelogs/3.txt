@@ -1,0 +1,16 @@
+1.1.1 corrects the footer and makes it useful.
+
+Fixed
+- The footer claimed "No permissions", which was not true. The APK declares nine, all of
+  them for the alarm feature. It now reads "Alarm permissions only. No internet. No
+  tracking.", which is accurate: there is genuinely no INTERNET permission, so the app
+  cannot reach the network. This was corrected in the source on 4 September but the fix
+  had never been released, so every installed copy still showed the old wording.
+
+Added
+- Privacy and Disclaimer are now links in the footer, so the terms are reachable from
+  inside the app rather than only from the website.
+- The Stormberry logo in the footer opens stormberry.as.
+
+Opening any of those hands the address to your browser. The app still has no INTERNET
+permission and still cannot reach the network itself.
