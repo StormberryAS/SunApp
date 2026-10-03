@@ -6,16 +6,15 @@ Privacy-first solar-position calculator. SunApp computes precise sunrise, solar 
 
 ## Features
 - **City search**: rapid, offline autocomplete over 25,007 cities, accent-insensitive both ways (`tromso` finds Tromsø) and exonym-aware (`Gothenburg` finds Göteborg).
-- **Android app**: the same calculations as a native APK, with optional alarms anchored to solar events.
-- **On-device geolocation**: retrieve your current coordinates with one click.
-- **Manual GPS input**: find astronomical data for any arbitrary point on the globe.
+- **Android app**: the same calculations as a native APK, with optional alarms anchored to solar events. [Get it on Zapstore](https://zapstore.dev/apps/no.stormberry.sunapp).
+- **Manual GPS input**: find astronomical data for any arbitrary point on the globe. A decimal comma works as well as a point (`60,39` or `60.39`), and so does a typographic minus; anything out of range is refused with a message rather than computed.
 - **Time travel**: pick any date, past or future, to calculate historical or upcoming solar events.
 - **Polar edge cases**: displays "Midnight Sun" or "Polar Night" when applicable based on latitude and season.
 - **Responsive layout**: optimised for mobile and desktop.
 
 ## Architecture
 - **Vanilla HTML/CSS/JS**, no frameworks, no build step.
-- **Privacy first**, and precisely so: no cookies and no tracking. **The sun times themselves involve no network at all** — every city carries its own IANA timezone in the bundled catalogue, and a raw GPS coordinate is resolved to a zone by nearest-neighbour lookup in that same catalogue, so there is nothing to send and nowhere to send it. The only requests the web page makes are first-party icons for the app-switcher strip, served from stormberry.as. The **Android build makes none at all**: it declares no `INTERNET` permission, which makes that claim checkable rather than promised.
+- **Privacy first**, and precisely so: no cookies and no tracking. **The sun times themselves involve no network at all**: every city carries its own IANA timezone in the bundled catalogue, and a raw GPS coordinate is resolved to a zone by nearest-neighbour lookup in that same catalogue, so there is nothing to send and nowhere to send it. The page never asks for the device's location either: a place comes from city search or from typed coordinates. The only requests the web page makes are first-party icons for the app-switcher strip, served from stormberry.as. The **Android build makes none at all**: it declares no `INTERNET` permission, which makes that claim checkable rather than promised.
 - Stormberry dark-mode glassmorphism design system, Inter typography.
 - **Sovereign AI**, built and maintained using high-speed agentic workflows.
 

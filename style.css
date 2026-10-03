@@ -296,11 +296,22 @@ input[type="date"].text-input {
   background: rgba(0, 0, 0, 0.45);
 }
 
-/* Remove browser default number input spinners */
-.text-input[type="number"]::-webkit-inner-spin-button,
-.text-input[type="number"]::-webkit-outer-spin-button {
-  -webkit-appearance: none;
-  margin: 0;
+/* Inline message under a coordinate field when it cannot be read */
+.field-error {
+  color: var(--accent-rose);
+  font-size: 0.8rem;
+  line-height: 1.4;
+}
+
+.text-input[aria-invalid="true"] {
+  border-color: rgba(255, 107, 107, 0.6);
+}
+
+/* Echo of the coordinates actually used, e.g. "Using 60.39, 5.32" */
+.field-note {
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  font-variant-numeric: tabular-nums;
 }
 
 /* Date input colour fix (browser default is often white) */
@@ -422,33 +433,6 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 .city-missing-note a:hover {
   color: var(--accent-gold);
 }
-/* ── DEVICE PANEL ───────────────────────────────────────────── */
-.device-panel {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: var(--sp-md);
-  padding: var(--sp-md) 0;
-}
-
-.device-hint {
-  color: var(--text-secondary);
-  font-size: 0.88rem;
-  text-align: center;
-}
-
-.device-coords {
-  font-family: var(--font-mono);
-  font-size: 0.85rem;
-  color: var(--accent-blue);
-  text-align: center;
-  background: rgba(79, 195, 247, 0.08);
-  border: 1px solid rgba(79, 195, 247, 0.2);
-  border-radius: var(--r-sm);
-  padding: var(--sp-sm) var(--sp-md);
-  width: 100%;
-}
-
 /* ── DATE FIELD ─────────────────────────────────────────────── */
 .date-field {
   /* Subtle top separator to visually separate from location panels */
@@ -511,6 +495,28 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   opacity: 0.5;
   cursor: not-allowed;
   transform: none !important;
+}
+
+/* ── ANDROID APP LINE ───────────────────────────────────────── */
+.android-app {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--sp-sm);
+  text-align: center;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.android-app strong {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.android-app .btn {
+  min-height: 44px;
+  text-decoration: none;
 }
 
 /* ── ERROR MESSAGE ──────────────────────────────────────────── */
