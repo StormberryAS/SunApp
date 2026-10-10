@@ -1,0 +1,7 @@
+1.1.2 changes the typeface.
+
+- Uses the Inter typeface throughout the app, the same one the website uses. The fonts
+  are bundled inside the app, so nothing is downloaded and the app still has no
+  INTERNET permission. Clock times keep their fixed-width digits so they line up.
+- On narrow phones, the example in the empty city search field no longer wraps onto a
+  second line, so the field keeps its height when you start typing.

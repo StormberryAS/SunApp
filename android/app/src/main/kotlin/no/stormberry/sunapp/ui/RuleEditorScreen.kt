@@ -1024,7 +1024,8 @@ private fun BoundRow(
                 text = value?.let { CLOCK.format(it) } ?: "Not set",
                 style = MaterialTheme.typography.bodyMedium,
                 color = if (value == null) Sun.TextMuted else Sun.TextPrimary,
-                fontFamily = if (value == null) FontFamily.Default else FontFamily.Monospace,
+                // "Not set" inherits Inter from the style; a set time is monospaced.
+                fontFamily = if (value == null) null else FontFamily.Monospace,
             )
         }
         if (value != null) {

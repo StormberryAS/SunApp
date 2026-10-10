@@ -24,6 +24,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import no.stormberry.sunapp.cities.City
@@ -89,6 +90,11 @@ fun CityPicker(
                         is CatalogueState.Failed -> "City search unavailable"
                     },
                     color = Sun.TextMuted,
+                    // One line, like the field itself. Set in Inter, the example is a
+                    // few dp too wide for a 360 dp phone and used to wrap, so the empty
+                    // field stood two lines tall and shrank on the first keystroke.
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
                 )
             },
             trailingIcon = {
