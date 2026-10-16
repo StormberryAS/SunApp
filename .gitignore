@@ -13,3 +13,6 @@ __pycache__/
 .env
 .env.*
 !.env.example
+
+# Type-checking tooling (npm ci --ignore-scripts); never committed
+node_modules/

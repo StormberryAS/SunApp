@@ -1,0 +1,12 @@
+{
+  "name": "sunapp",
+  "private": true,
+  "description": "Type-checking tooling only: the TypeScript compiler checks the plain JavaScript the site serves (checkJs, noEmit). Nothing here is published and the site has no build step or runtime dependencies.",
+  "license": "MIT",
+  "scripts": {
+    "typecheck": "tsc -p jsconfig.json"
+  },
+  "devDependencies": {
+    "typescript": "6.0.3"
+  }
+}

@@ -25,6 +25,35 @@
 
 'use strict';
 
+/* Types for the TypeScript checker only (see jsconfig.json); the browser ignores them.
+   City, SunCalc and foldQuery come from types/cities.d.ts and types/suncalc.d.ts. */
+
+/**
+ * The resolved zone for a calculation.
+ * @typedef {object} TzInfo
+ * @property {string} ianaId        IANA identifier, for example "Europe/Oslo"
+ * @property {string} abbreviation  short name such as "CEST", or "" when Intl has none
+ */
+
+/** @typedef {'midnight-sun' | 'polar-night'} PolarCondition */
+
+/**
+ * Everything renderResults shows.
+ * @typedef {object} SunResults
+ * @property {number} lat
+ * @property {number} lon
+ * @property {string} tz
+ * @property {string} tzAbbr
+ * @property {string} dateStr
+ * @property {string} locationLabel  computed by onCalculate but not shown
+ * @property {string | null} sunriseStr
+ * @property {string | null} noonStr
+ * @property {string | null} sunsetStr
+ * @property {PolarCondition | null} polarCondition
+ * @property {string | null} dayLengthStr  "14h 10m", or null on a polar day
+ * @property {number} dayLengthPct          0 to 100
+ */
+
 /* ================================================================
    SECTION 1 — CITY DATABASE
    Format: { name, country, lat, lon, tz }
@@ -38,6 +67,7 @@
    SECTION 2 — APP STATE
    A single object that tracks what's currently selected.
 ================================================================ */
+/** @type {{ tab: string, city: City | null }} */
 const state = {
   tab: 'city',           // 'city' | 'gps'
   city: null,            // Selected city object from CITIES array
@@ -47,44 +77,48 @@ const state = {
    SECTION 3 — DOM REFERENCES
    Grab all elements we need once at startup.
 ================================================================ */
+/** @type {(id: string) => HTMLElement | null} */
 const $ = id => document.getElementById(id);
+
+/* Every id below is in index.html, which loads this script last, so each cast only drops
+   the null that getElementById allows for a missing element. */
 
 const els = {
   // Tabs
-  tabCity:   $('tab-city'),
-  tabGps:    $('tab-gps'),
+  tabCity:   /** @type {HTMLButtonElement} */ ($('tab-city')),
+  tabGps:    /** @type {HTMLButtonElement} */ ($('tab-gps')),
   // Panels
-  panelCity:   $('panel-city'),
-  panelGps:    $('panel-gps'),
+  panelCity:   /** @type {HTMLElement} */ ($('panel-city')),
+  panelGps:    /** @type {HTMLElement} */ ($('panel-gps')),
   // City search
-  citySearch:   $('city-search'),
-  cityDropdown: $('city-dropdown'),
-  citySelected: $('city-selected'),
-  citySelectedText: $('city-selected-text'),
-  cityClearBtn: $('city-clear-btn'),
+  citySearch:   /** @type {HTMLInputElement} */ ($('city-search')),
+  cityDropdown: /** @type {HTMLUListElement} */ ($('city-dropdown')),
+  citySelected: /** @type {HTMLElement} */ ($('city-selected')),
+  citySelectedText: /** @type {HTMLElement} */ ($('city-selected-text')),
+  cityClearBtn: /** @type {HTMLButtonElement} */ ($('city-clear-btn')),
   // GPS inputs
-  latInput: $('lat-input'),
-  lonInput: $('lon-input'),
-  latError: $('lat-error'),
-  lonError: $('lon-error'),
-  gpsEcho:  $('gps-echo'),
+  latInput: /** @type {HTMLInputElement} */ ($('lat-input')),
+  lonInput: /** @type {HTMLInputElement} */ ($('lon-input')),
+  latError: /** @type {HTMLElement} */ ($('lat-error')),
+  lonError: /** @type {HTMLElement} */ ($('lon-error')),
+  gpsEcho:  /** @type {HTMLElement} */ ($('gps-echo')),
   // Date
-  dateInput: $('date-input'),
+  dateInput: /** @type {HTMLInputElement} */ ($('date-input')),
   // Calculate
-  calculateBtn: $('calculate-btn'),
-  errorMsg:     $('error-msg'),
+  calculateBtn: /** @type {HTMLButtonElement} */ ($('calculate-btn')),
+  errorMsg:     /** @type {HTMLElement} */ ($('error-msg')),
   // Results
-  resultsCard:    $('results-card'),
-  resCoords:  $('res-coords'),
-  resDate:    $('res-date'),
-  resTz:      $('res-tz'),
-  resSunrise: $('res-sunrise'),
-  resNoon:    $('res-noon'),
-  resSunset:  $('res-sunset'),
-  resDayLength: $('res-daylength'),
-  dayBarFill: $('day-bar-fill'),
+  resultsCard:    /** @type {HTMLElement} */ ($('results-card')),
+  resCoords:  /** @type {HTMLElement} */ ($('res-coords')),
+  resDate:    /** @type {HTMLElement} */ ($('res-date')),
+  resTz:      /** @type {HTMLElement} */ ($('res-tz')),
+  resSunrise: /** @type {HTMLElement} */ ($('res-sunrise')),
+  resNoon:    /** @type {HTMLElement} */ ($('res-noon')),
+  resSunset:  /** @type {HTMLElement} */ ($('res-sunset')),
+  resDayLength: /** @type {HTMLElement} */ ($('res-daylength')),
+  dayBarFill: /** @type {HTMLElement} */ ($('day-bar-fill')),
   // Loading
-  loadingOverlay: $('loading-overlay'),
+  loadingOverlay: /** @type {HTMLElement} */ ($('loading-overlay')),
 };
 
 /* ================================================================
@@ -96,7 +130,8 @@ function init() {
 
   // Wire up tab click events
   [els.tabCity, els.tabGps].forEach(btn => {
-    btn.addEventListener('click', () => switchTab(btn.dataset.tab));
+    /* Both tab buttons carry data-tab ("city" or "gps") in index.html. */
+    btn.addEventListener('click', () => switchTab(/** @type {string} */ (btn.dataset.tab)));
   });
 
   // Wire up city search
@@ -106,7 +141,7 @@ function init() {
 
   // Close dropdown when clicking outside
   document.addEventListener('click', e => {
-    if (!e.target.closest('.search-wrapper')) closeDropdown();
+    if (!/** @type {Element} */ (e.target).closest('.search-wrapper')) closeDropdown();
   });
 
   // Editing a coordinate clears its error and the "Using ..." line, which
@@ -121,6 +156,7 @@ function init() {
 /* ================================================================
    SECTION 5 — TAB SWITCHING
 ================================================================ */
+/** @param {string} tab  "city" or "gps" */
 function switchTab(tab) {
   state.tab = tab;
 
@@ -128,7 +164,7 @@ function switchTab(tab) {
   [els.tabCity, els.tabGps].forEach(btn => {
     const isActive = btn.dataset.tab === tab;
     btn.classList.toggle('active', isActive);
-    btn.setAttribute('aria-selected', isActive);
+    btn.setAttribute('aria-selected', String(isActive));
   });
 
   // Show / hide panels
@@ -178,10 +214,10 @@ function onCityInput() {
     const li = document.createElement('li');
     li.setAttribute('role', 'option');
     li.setAttribute('aria-selected', 'false');
-    li.dataset.index = i;
+    li.dataset.index = String(i);
     li.innerHTML = `
-      <span class="city-name">${city.name}</span>
-      <span class="city-country">${city.country}</span>
+      <span class="city-name">${escapeHtml(city.name)}</span>
+      <span class="city-country">${escapeHtml(city.country)}</span>
     `;
     li.addEventListener('click', () => selectCity(city));
     li.addEventListener('mouseenter', () => {
@@ -196,6 +232,7 @@ function onCityInput() {
   els.citySearch.setAttribute('aria-expanded', 'true');
 }
 
+/** @param {KeyboardEvent} e */
 function onCityKeydown(e) {
   const items = els.cityDropdown.querySelectorAll('li');
 
@@ -215,12 +252,14 @@ function onCityKeydown(e) {
   }
 }
 
+/** @param {number} index  row to highlight, -1 for none */
 function setHighlight(index) {
   const items = els.cityDropdown.querySelectorAll('li');
   items.forEach((li, i) => li.classList.toggle('highlighted', i === index));
   highlightIndex = index;
 }
 
+/** @param {City} city */
 function selectCity(city) {
   state.city = city;
   els.citySearch.value = '';
@@ -235,6 +274,9 @@ function clearCity() {
   state.city = null;
   els.citySelected.setAttribute('hidden', '');
   els.citySearch.value = '';
+  // Also forgets the keyboard highlight and the last match list, so Enter in the
+  // emptied field cannot re-select a city from a list that is no longer shown.
+  closeDropdown();
   els.citySearch.focus();
 }
 
@@ -242,12 +284,23 @@ function closeDropdown() {
   els.cityDropdown.setAttribute('hidden', '');
   els.citySearch.setAttribute('aria-expanded', 'false');
   els.cityDropdown.innerHTML = '';
+  // A closed list has nothing to select. Before 2026-10-16 the highlight and the
+  // stored matches survived closing, so after a keyboard pick, Clear and Enter (or
+  // Escape and Enter, or ArrowUp and Enter) re-selected a city from the old list.
+  highlightIndex = -1;
+  els.cityDropdown._matches = undefined;
 }
 
 /* ================================================================
    SECTION 7: TYPED NUMBERS
 ================================================================ */
 // Shared Labs parser: accepts "60,39" and a Unicode minus, rejects anything else or out of range (null).
+/**
+ * @param {string | null | undefined} text
+ * @param {number} min
+ * @param {number} max
+ * @returns {number | null}
+ */
 function parseDecimal(text, min, max) {
   if (text == null) return null;
   let s = String(text).trim().replace(/[\u2212\u2012\u2013\u2014\uFE63\uFF0D]/g, '-').replace(/\s+/g, '');
@@ -257,7 +310,12 @@ function parseDecimal(text, min, max) {
   return Number.isFinite(n) && n >= min && n <= max ? n : null;
 }
 
-/** Show (msg) or clear (null) the inline message under one coordinate field. */
+/**
+ * Show (msg) or clear (null) the inline message under one coordinate field.
+ * @param {HTMLInputElement} input
+ * @param {HTMLElement} errorEl
+ * @param {string | null} msg
+ */
 function setFieldError(input, errorEl, msg) {
   if (msg) {
     errorEl.textContent = msg;
@@ -271,7 +329,8 @@ function setFieldError(input, errorEl, msg) {
 }
 
 /** Show (text) or clear (null) the "Using ..." line. Cleared text, not just
- *  hidden: aria-describedby still reads a hidden element it points at. */
+ *  hidden: aria-describedby still reads a hidden element it points at.
+ *  @param {string | null} text */
 function setEcho(text) {
   els.gpsEcho.textContent = text || '';
   els.gpsEcho.hidden = !text;
@@ -283,10 +342,16 @@ function setEcho(text) {
    database, and typed coordinates resolve to the nearest known
    city's zone. Nothing hits the network.
 ================================================================ */
+/**
+ * @param {number} lat
+ * @param {number} lon
+ * @returns {string} IANA zone of the nearest catalogue city
+ */
 function nearestCityTimezone(lat, lon) {
   // Timezones are large political regions and the bundled city list is dense
   // near populated areas, so the nearest city's zone is the correct one in
   // practice. Equirectangular distance is plenty for a nearest-neighbour pick.
+  /** @type {City | null} */
   let best = null, bestDist = Infinity;
   for (const c of CITIES) {
     let dLon = Math.abs(c.lon - lon);
@@ -299,6 +364,11 @@ function nearestCityTimezone(lat, lon) {
   return best ? best.tz : (Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC');
 }
 
+/**
+ * @param {number} lat
+ * @param {number} lon
+ * @returns {TzInfo}
+ */
 function resolveTimezone(lat, lon) {
   const ianaId = nearestCityTimezone(lat, lon);
   return { ianaId, abbreviation: getTimezoneAbbreviation(ianaId, els.dateInput.value) };
@@ -311,7 +381,10 @@ async function onCalculate() {
   clearError();
 
   // --- 9.1: Gather lat/lon and timezone based on active tab ---
-  let lat, lon, tzInfo;
+  /* Both tabs below assign lat, lon and tzInfo or return early, so the NaN start values are
+     never read; they exist so the checker can see lat and lon are always numbers. */
+  let lat = NaN, lon = NaN;
+  /** @type {TzInfo | undefined} */ let tzInfo;
 
   if (state.tab === 'city') {
     if (!state.city) {
@@ -350,14 +423,14 @@ async function onCalculate() {
       tzInfo = await resolveTimezone(lat, lon);
     } catch (err) {
       showLoading(false);
-      showError(`Could not resolve timezone for these coordinates: ${err.message}`);
+      showError(`Could not resolve timezone for these coordinates: ${/** @type {Error} */ (err).message}`);
       return;
     }
     showLoading(false);
   }
 
   // --- 9.2: Parse the selected date ---
-  // The date input gives "YYYY-MM-DD". We construct a date at local
+  // The date input gives "YYYY-MM-DD". We construct a date at UTC
   // noon so SunCalc uses the correct calendar day regardless of timezone.
   const [year, month, day] = els.dateInput.value.split('-').map(Number);
   if (!year || !month || !day) {
@@ -393,6 +466,7 @@ async function onCalculate() {
   // old noon-against-zero test on ONE day at Longyearbyen and on none at
   // Tromso or Bergen. It is here for correctness and cross-surface parity, not
   // because users were seeing wrong labels every week.
+  /** @type {PolarCondition | null} */
   let polarCondition = null;
   if (!sunriseValid || !sunsetValid) {
     const HORIZON = -0.833 * Math.PI / 180;
@@ -413,18 +487,21 @@ async function onCalculate() {
   }
 
   // --- 9.5: Format the times in the TARGET timezone (not browser's!) ---
-  const tz = tzInfo.ianaId;
+  /* Both tabs set tzInfo or return above; state.tab is only ever 'city' or 'gps'. */
+  const info = /** @type {TzInfo} */ (tzInfo);
+  const tz = info.ianaId;
 
   const sunriseStr = sunriseValid ? formatTime(times.sunrise, tz) : null;
   const noonStr    = noonValid    ? formatTime(times.solarNoon, tz) : null;
   const sunsetStr  = sunsetValid  ? formatTime(times.sunset, tz)  : null;
 
   // --- 9.6: Calculate day length ---
+  /** @type {string | null} */
   let dayLengthStr  = null;
   let dayLengthPct  = 0;
 
   if (sunriseValid && sunsetValid) {
-    const ms = times.sunset - times.sunrise;
+    const ms = times.sunset.getTime() - times.sunrise.getTime();
     const totalMinutes = Math.round(ms / 60000);
     const h = Math.floor(totalMinutes / 60);
     const m = totalMinutes % 60;
@@ -436,14 +513,16 @@ async function onCalculate() {
   // --- 9.7: Build location label ---
   let locationLabel;
   if (state.tab === 'city') {
-    locationLabel = `${state.city.name}, ${state.city.country}`;
+    /* The city tab returned above unless a city is selected, and nothing in between awaits. */
+    const city = /** @type {City} */ (state.city);
+    locationLabel = `${city.name}, ${city.country}`;
   } else {
     locationLabel = `${lat.toFixed(4)}°, ${lon.toFixed(4)}°`;
   }
 
   // --- 9.8: Render results ---
   renderResults({
-    lat, lon, tz, tzAbbr: tzInfo.abbreviation,
+    lat, lon, tz, tzAbbr: info.abbreviation,
     dateStr: formatDate(dateForCalc),
     locationLabel,
     sunriseStr, noonStr, sunsetStr,
@@ -455,6 +534,7 @@ async function onCalculate() {
 /* ================================================================
    SECTION 10 — RESULTS RENDERING
 ================================================================ */
+/** @param {SunResults} results */
 function renderResults({
   lat, lon, tz, tzAbbr,
   dateStr, locationLabel,
@@ -519,6 +599,8 @@ function renderResults({
 /**
  * Returns today's date as a YYYY-MM-DD string based on the
  * browser's local date (for the date-picker default).
+ *
+ * @returns {string} e.g. "2026-10-16"
  */
 function getTodayString() {
   const now = new Date();
@@ -531,6 +613,9 @@ function getTodayString() {
 /**
  * Returns true if 'd' is a Date object with a valid numeric value.
  * SunCalc returns Dates with NaN time values for polar conditions.
+ *
+ * @param {unknown} d
+ * @returns {d is Date}
  */
 function isValidDate(d) {
   return d instanceof Date && !isNaN(d.getTime());
@@ -597,12 +682,25 @@ function getTimezoneAbbreviation(ianaId, dateStr) {
 }
 
 
+/**
+ * Escapes HTML special characters, so a city name is shown as text and never parsed
+ * as markup. Same function as MoonApp's. Added 2026-10-16: the catalogue is ours,
+ * but its one "&" entry worked only because the parser forgave a bare ampersand.
+ *
+ * @param {string} str
+ * @returns {string}
+ */
+function escapeHtml(str) {
+  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
 /* ================================================================
    SECTION 12 — UI STATE HELPERS
 ================================================================ */
 
 /** Display an error message below the calculate button, and hide any
- *  earlier result so it cannot be read as the answer to the new input. */
+ *  earlier result so it cannot be read as the answer to the new input.
+ *  @param {string} msg */
 function showError(msg) {
   els.errorMsg.textContent = msg;
   els.errorMsg.removeAttribute('hidden');
@@ -615,7 +713,8 @@ function clearError() {
   els.errorMsg.textContent = '';
 }
 
-/** Show or hide the full-screen loading overlay */
+/** Show or hide the full-screen loading overlay
+ *  @param {boolean} show */
 function showLoading(show) {
   els.loadingOverlay.hidden = !show;
 }

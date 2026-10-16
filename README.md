@@ -43,6 +43,14 @@ python update_cities.py
 ```
 The `.venv` folder is excluded via `.gitignore` to keep the repository lightweight.
 
+### Type checking
+`app.js` stays plain JavaScript that the browser loads as written, with no build step. Its types live in JSDoc comments, and the TypeScript compiler (6.0.3, pinned) only checks them (`checkJs`, `noEmit`, `strict`). The vendored `suncalc.js` and the generated `cities.js` are not checked; hand-written declarations for them live in `types/`.
+
+```bash
+npm ci --ignore-scripts && npm run typecheck
+```
+A clean run prints nothing and exits 0. `package.json`, `package-lock.json`, `jsconfig.json`, `types/` and `node_modules/` are development files only: `_config.yml` keeps them off the site, and the Android build copies only `data/cities.tsv`.
+
 ## Credits
 Built by [Stormberry AS](https://stormberry.as). Proudly powered by sovereign AI agents.
 
