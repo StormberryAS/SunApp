@@ -51,8 +51,13 @@ android {
         // 1.1.2 (code 4), 2026-10-10: Inter. The app is set in the typeface sun.stormberry.as
         // self-hosts, bundled in res/font, plus one layout fix it forced (the city search
         // hint stays on one line on a 360 dp phone).
-        versionCode = 4
-        versionName = "1.1.2"
+        //
+        // 1.1.3 (code 5), 2026-10-16: the ring screen opens over the lock screen. Android drops
+        // the full-screen intent of a notification it treats as silent, and the ringing one
+        // was: by its own setSilent(true), and, after a snooze, by the system auto-grouping it
+        // with the "snoozed" notice. A locked phone showed only a notification. See AlarmService.
+        versionCode = 5
+        versionName = "1.1.3"
 
         // No instrumentation tests, no test runner, nothing that pulls in extra permissions.
         // Density-split PNGs are generated at build time from vectors and are a source of

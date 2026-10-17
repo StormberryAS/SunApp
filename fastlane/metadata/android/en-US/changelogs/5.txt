@@ -1,0 +1,6 @@
+1.1.3 fixes the alarm screen.
+
+- On a locked phone, a ringing alarm showed only as a notification: the screen stayed
+  dark and the alarm screen with Snooze and Dismiss did not open. It now wakes the screen
+  and opens over the lock screen, for a snoozed alarm too. The tone and the vibration are
+  unchanged.

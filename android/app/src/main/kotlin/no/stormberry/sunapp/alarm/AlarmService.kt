@@ -123,6 +123,15 @@ class AlarmService : Service() {
         val alarm = ringingAlarmFrom(intent)
         current.value = alarm
 
+        // The ring notification must be this app's only notification when it is posted. A
+        // "snoozed" or "missed" notice still in the shade makes two, Android then auto-groups
+        // them, and an auto-grouped notification is marked silent by the system itself, which
+        // suppresses the full-screen intent exactly as setSilent did (reproduced on an API 36
+        // emulator, 16 October 2026: a snoozed alarm rang with no ring screen while its own
+        // "snoozed" notice was showing). A snoozed notice is out of date once anything rings;
+        // a missed notice is the cost, gone when the next alarm starts.
+        cancelNotice(this)
+
         if (!startInForeground(buildRingNotification(alarm))) {
             // Without foreground status the service will be killed within seconds, so the
             // best remaining move is to post the same notification as a plain one and let its
@@ -207,7 +216,13 @@ class AlarmService : Service() {
             .setAutoCancel(false)
             // This notification makes no sound of its own: the service owns the audio, so
             // that it can crescendo, keep playing through focus loss, and stop on a dismiss.
-            .setSilent(true)
+            // The silence comes from CHANNEL_RING, which has no sound and no vibration, and
+            // NOT from setSilent(true). NotificationCompat implements setSilent by putting the
+            // notification in a group called "silent" with GROUP_ALERT_SUMMARY, and Android
+            // never alerts a muted group child: no heads-up and no full-screen intent. Up to
+            // 1.1.2 that meant a locked phone showed only a notification and the ring screen
+            // never opened (reproduced on an API 36 emulator, 16 October 2026; the same
+            // defect EclipseTracker's port of this engine found as E-2).
             .setFullScreenIntent(ring, true)
             .setContentIntent(ring)
             .addAction(0, "Snooze ${AlarmFireReceiver.SNOOZE_MINUTES} min", snooze)
@@ -526,7 +541,14 @@ class AlarmService : Service() {
         private const val EXTRA_RINGTONE = "no.stormberry.sunapp.extra.RINGTONE"
         private const val EXTRA_VIBRATE = "no.stormberry.sunapp.extra.VIBRATE"
 
-        /** The ringing alarm. Silent as a notification: the service plays the sound itself. */
+        /**
+         * The ringing alarm. Silent as a notification: the service plays the sound itself.
+         *
+         * The silence lives in the channel (no sound, no vibration, both set in
+         * [ensureChannels] since 1.1.0, so no installed copy has a channel with a sound and the
+         * id never needed to change), never in `setSilent` on the notification: see
+         * `buildRingNotification`.
+         */
         const val CHANNEL_RING: String = "alarm_ring"
 
         /** Snoozed and auto-silenced alarms. Ordinary importance, no full-screen intent. */
@@ -655,9 +677,16 @@ class AlarmService : Service() {
                 .setCategory(NotificationCompat.CATEGORY_ALARM)
                 .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
                 .setAutoCancel(true)
+                // Silent on purpose and safe here: it carries no full-screen intent, and a
+                // snooze is something the user just did, so it should not chime at them.
                 .setSilent(true)
                 .build()
             runCatching { NotificationManagerCompat.from(context).notify(NOTIFICATION_ID_NOTICE, notice) }
+        }
+
+        /** Removes the snoozed or missed notice, if one is showing. */
+        private fun cancelNotice(context: Context) {
+            runCatching { NotificationManagerCompat.from(context).cancel(NOTIFICATION_ID_NOTICE) }
         }
 
         /**
@@ -680,6 +709,9 @@ class AlarmService : Service() {
                 .setCategory(NotificationCompat.CATEGORY_ALARM)
                 .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
                 .setAutoCancel(true)
+                // Silent on purpose and safe here: it carries no full-screen intent, and the
+                // alarm has just rung for ten minutes, so this is a record of that, not a
+                // second alarm.
                 .setSilent(true)
                 .build()
             runCatching { NotificationManagerCompat.from(context).notify(NOTIFICATION_ID_NOTICE, notice) }
