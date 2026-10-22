@@ -23,10 +23,16 @@ exclude:
   - bump_assets.py
 # bump_assets.py added 2026-09-05: the estate-wide sweep found it still reachable from
 # the live site. tools/ was already excluded here.
-  # Type-checking tooling, added 2026-10-16. Dev-only: the site is still plain JavaScript
-  # with no build step, so none of this may ever be served.
+# Type-checking tooling, added 2026-10-16, then the TypeScript move (21 October 2026, on
+# EclipseTracker's model): the TypeScript sources (ts/), the tests (tests/), the package files,
+# .npmrc, tsconfig.json and the installed compiler (node_modules/, never committed) are excluded.
+# tools/ (which now also holds build-ts.sh and gen-solar-golden.ts) was excluded already. The page
+# loads only the compiled app.js, which IS published. jsconfig.json and types/ are gone: the
+# declarations moved into ts/.
   - node_modules/
   - package.json
   - package-lock.json
-  - jsconfig.json
-  - types/
+  - .npmrc
+  - tsconfig.json
+  - ts/
+  - tests/

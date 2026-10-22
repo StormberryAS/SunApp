@@ -1,0 +1,29 @@
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "ES2020",
+    "moduleResolution": "bundler",
+    "lib": [
+      "ES2020",
+      "DOM",
+      "DOM.Iterable"
+    ],
+    "types": [],
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUncheckedIndexedAccess": true,
+    "verbatimModuleSyntax": true,
+    "rootDir": "ts",
+    "outDir": ".",
+    "newLine": "lf",
+    "removeComments": true,
+    "noEmitOnError": true
+  },
+  "include": [
+    "ts/**/*.ts"
+  ],
+  "exclude": []
+}

@@ -1,12 +1,20 @@
 {
   "name": "sunapp",
   "private": true,
-  "description": "Type-checking tooling only: the TypeScript compiler checks the plain JavaScript the site serves (checkJs, noEmit). Nothing here is published and the site has no build step or runtime dependencies.",
+  "type": "module",
+  "description": "Build and test tooling only: compiles ts/app.ts into the app.js the page loads, and runs the tests (TypeScript, run by Node 24 directly). The published site has no runtime dependencies.",
   "license": "MIT",
+  "engines": {
+    "node": ">=24"
+  },
   "scripts": {
-    "typecheck": "tsc -p jsconfig.json"
+    "build": "tools/build-ts.sh",
+    "check": "tools/build-ts.sh --check",
+    "test": "node --test tests/*.test.ts",
+    "smoke": "node tests/smoke.ts"
   },
   "devDependencies": {
+    "@types/node": "24.19.2",
     "typescript": "6.0.3"
   }
 }

@@ -28,12 +28,31 @@ jobs:
 
       - uses: gradle/actions/setup-gradle@v6
 
+      # Node 24 for the TypeScript checks below (21 October 2026, as EclipseTracker's workflow of
+      # 17 October): the same v7.0.0 of 14 July 2026, pinned by commit. No npm cache: nothing
+      # another run left behind may change what this build reads. The Gradle build never runs Node.
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: "24"
+
       # Runs before Gradle deliberately. The APK bundles data/cities.tsv while the
       # website serves cities.js, and both come out of one generator run. If they
       # have drifted, that is a data bug worth failing on before spending five
       # minutes compiling.
       - name: Check city catalogue parity
         run: python3 tools/check-city-parity.py
+
+      # tools/build-ts.sh --check installs the pinned TypeScript with npm ci (frozen, no install
+      # scripts) and fails unless app.js is byte for byte what ts/app.ts compiles to, the tests
+      # type-check, every ?v= stamp is current and the city catalogue parity holds. Then the unit
+      # tests, among them S-1 (the only JavaScript in the repository is compiled, generated or
+      # vendored) and the golden check: suncalc-golden.csv is what tools/gen-solar-golden.ts writes.
+      - name: Check the compiled TypeScript and run the unit tests
+        run: |
+          set -euo pipefail
+          node --version
+          tools/build-ts.sh --check
+          node --test tests/*.test.ts
 
       # The runner ships an Android SDK, but not necessarily platform 37.1, and its
       # bundled sdkmanager may be too old to know that package exists. Refresh

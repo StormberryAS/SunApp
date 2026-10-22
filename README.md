@@ -13,7 +13,7 @@ Privacy-first solar-position calculator. SunApp computes precise sunrise, solar 
 - **Responsive layout**: optimised for mobile and desktop.
 
 ## Architecture
-- **Vanilla HTML/CSS/JS**, no frameworks, no build step.
+- **Vanilla HTML/CSS and TypeScript**, no frameworks and no runtime dependencies. The page code is written in TypeScript (`ts/app.ts`) and compiled to the plain `app.js` the page loads, which is committed, so GitHub Pages serves the repository as it is with no build step of its own.
 - **Privacy first**, and precisely so: no cookies and no tracking. **The sun times themselves involve no network at all**: every city carries its own IANA timezone in the bundled catalogue, and a raw GPS coordinate is resolved to a zone by nearest-neighbour lookup in that same catalogue, so there is nothing to send and nowhere to send it. The page never asks for the device's location either: a place comes from city search or from typed coordinates. The only requests the web page makes are first-party icons for the app-switcher strip, served from stormberry.as. The **Android build makes none at all**: it declares no `INTERNET` permission, which makes that claim checkable rather than promised.
 - Stormberry dark-mode glassmorphism design system, Inter typography.
 - **Sovereign AI**, built and maintained using high-speed agentic workflows.
@@ -43,13 +43,19 @@ python update_cities.py
 ```
 The `.venv` folder is excluded via `.gitignore` to keep the repository lightweight.
 
-### Type checking
-`app.js` stays plain JavaScript that the browser loads as written, with no build step. Its types live in JSDoc comments, and the TypeScript compiler (6.0.3, pinned) only checks them (`checkJs`, `noEmit`, `strict`). The vendored `suncalc.js` and the generated `cities.js` are not checked; hand-written declarations for them live in `types/`.
+### TypeScript, build and tests
+The page code is TypeScript: edit `ts/app.ts`, never `app.js`. `tools/build-ts.sh` compiles it with the pinned TypeScript 6.0.3 (strict) into `app.js`, a classic script like before, and then runs `bump_assets.py` so the page loads the new file under a fresh `?v=` stamp. `app.js` is committed, because GitHub Pages publishes the repository as it is; `.gitattributes` marks it as generated. The build refuses to overwrite an `app.js` edited by hand. `suncalc.js` (SunCalc 1.8.0, vendored, byte for byte) and `cities.js` (written by `update_cities.py`) are not compiled; their declarations live in `ts/`.
+
+Needs Node 24 and Python 3. The tests are TypeScript too, run by Node directly.
 
 ```bash
-npm ci --ignore-scripts && npm run typecheck
+tools/build-ts.sh            # npm ci (frozen, install scripts off), type-check, compile ts/ to app.js, stamp the page
+tools/build-ts.sh --check    # change nothing; fail if app.js is stale, a stamp is stale or the city data disagree
+npm test                     # unit tests: page helpers, golden corpus, city parity, day classifier, the TypeScript rule
+npm run smoke                # the page in headless Chromium, against snapshots captured from SunApp 1.1.3
+node tools/gen-solar-golden.ts [--check]   # (re)write the Android port's solar golden corpus
 ```
-A clean run prints nothing and exits 0. `package.json`, `package-lock.json`, `jsconfig.json`, `types/` and `node_modules/` are development files only: `_config.yml` keeps them off the site, and the Android build copies only `data/cities.tsv`.
+`package.json`, `package-lock.json`, `.npmrc`, `tsconfig.json`, `ts/`, `tests/`, `tools/` and `node_modules/` are development files only: `_config.yml` keeps them off the site, and the Android build copies only `data/cities.tsv`.
 
 ## Credits
 Built by [Stormberry AS](https://stormberry.as). Proudly powered by sovereign AI agents.

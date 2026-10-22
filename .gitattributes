@@ -1,0 +1,19 @@
+# GitHub's language bar counts what people write, not what a tool generates or what was copied in
+# from elsewhere. The files below are one or the other, so they are marked and left out of the
+# statistics (and the diffs of generated files are collapsed by default on GitHub). Added on
+# 21 October 2026 with the TypeScript move, on EclipseTracker's model.
+#
+# app.js is compiled from ts/app.ts by tools/build-ts.sh; edit the TypeScript.
+/app.js linguist-generated=true
+# cities.js is the shared Labs city catalogue, written by update_cities.py into nine app
+# repositories in one run (with data/cities.tsv, which tools/check-city-parity.py holds it to).
+/cities.js linguist-generated=true
+# suncalc.js is SunCalc 1.8.0 (BSD-2-Clause, mourner/suncalc), vendored and kept byte for byte.
+/suncalc.js linguist-vendored=true
+# The test corpora for the Android port. suncalc-golden.csv is written by tools/gen-solar-golden.ts;
+# daykind-parity.csv was written by running the page's classifier, and the tests hold both to it.
+/android/app/src/test/resources/suncalc-golden.csv linguist-generated=true
+/android/app/src/test/resources/daykind-parity.csv linguist-generated=true
+# The page vectors, captured from the SunApp 1.1.3 page (with its Home Screen icon link) by
+# tests/capture-vectors.ts and replayed by tests/smoke.ts against the current page.
+/tests/page-vectors.json linguist-generated=true

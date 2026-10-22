@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * gen-solar-golden.js: regenerate the solar golden corpus for the Android port.
+ * gen-solar-golden.ts: regenerate the solar golden corpus for the Android port.
  * ================================================================
  * Emits android/app/src/test/resources/suncalc-golden.csv: 25 cases (24 real
  * places and dates, plus one synthetic coordinate) x all 14 SunCalc event
@@ -51,26 +51,71 @@
  * rendering (the zone is the port's business, and a golden file that carries one
  * would freeze a tzdb version into the test suite).
  *
- * Usage, from anywhere:
- *   node tools/gen-solar-golden.js
+ * Usage, from anywhere (Node 24 runs the TypeScript directly):
+ *   node tools/gen-solar-golden.ts           write the CSV
+ *   node tools/gen-solar-golden.ts --check   write nothing; exit 1 unless the committed
+ *                                           CSV is byte for byte what this script writes
  * Then commit the CSV. It is checked in rather than generated at build time so
- * a change to the goldens shows up as a reviewable diff.
+ * a change to the goldens shows up as a reviewable diff. tests/golden.test.ts runs
+ * the --check mode, so a stale CSV fails `npm test`.
+ *
+ * TYPESCRIPT (21 October 2026). Until then this was gen-solar-golden.js, CommonJS that
+ * loaded the library with require('../suncalc.js'). package.json now says "type":
+ * "module", so Node would read suncalc.js as an ES module, where SunCalc's UMD wrapper
+ * finds neither module nor define and writes to window, which Node does not have. So
+ * loadSunCalc() below runs the vendored file's own text with a plain object standing in
+ * for window, in this realm: the Dates it returns are this realm's Dates, so the
+ * instanceof test in formatInstant still holds (a vm context would hand back Dates from
+ * another realm, every one of them formatted as NONE). The output is byte for byte the
+ * CSV the JavaScript wrote.
  * ================================================================
  */
 
-'use strict';
-
-const fs = require('fs');
-const path = require('path');
+import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { dirname, join, resolve } from 'node:path';
 
 // Resolve everything against this script's own location. The CSV lands deep in
 // the Gradle test tree and the library sits at the repo root; neither should
 // depend on which directory the operator happened to be standing in.
-const REPO_ROOT = path.resolve(__dirname, '..');
-const SunCalc = require(path.join(REPO_ROOT, 'suncalc.js'));
-const OUT_PATH = path.join(
+const REPO_ROOT = resolve(import.meta.dirname, '..');
+const OUT_PATH = join(
   REPO_ROOT, 'android', 'app', 'src', 'test', 'resources', 'suncalc-golden.csv',
 );
+
+/** The fourteen keys getTimes returns for the default table, each a Date (NaN when absent). */
+interface SunCalcTimesLike {
+  sunrise: Date; sunset: Date; sunriseEnd: Date; sunsetStart: Date; dawn: Date; dusk: Date;
+  nauticalDawn: Date; nauticalDusk: Date; nightEnd: Date; night: Date; goldenHourEnd: Date;
+  goldenHour: Date; solarNoon: Date; nadir: Date;
+}
+
+/** The one SunCalc function this script calls. */
+interface SunCalcLike {
+  getTimes(date: Date, lat: number, lng: number): SunCalcTimesLike;
+}
+
+/** One golden case: a place, a calendar date and why it is in the corpus. */
+interface GoldenCase {
+  readonly id: string;
+  readonly lat: number;
+  readonly lon: number;
+  readonly date: string;
+  readonly desc: string;
+}
+
+/**
+ * The bundled suncalc.js, run as the page runs it: a classic script whose UMD wrapper,
+ * finding no exports, module or define, publishes itself as window.SunCalc. The four
+ * parameters shadow whatever this module scope has under those names.
+ */
+function loadSunCalc(): SunCalcLike {
+  const source = readFileSync(join(REPO_ROOT, 'suncalc.js'), 'utf8');
+  const win: { SunCalc?: SunCalcLike } = {};
+  new Function('window', 'exports', 'module', 'define', source)(win, undefined, undefined, undefined);
+  if (!win.SunCalc) throw new Error('suncalc.js did not publish window.SunCalc');
+  return win.SunCalc;
+}
+const SunCalc = loadSunCalc();
 
 /**
  * SunCalc's returned key -> the Kotlin SolarEvent constant it maps to.
@@ -80,7 +125,7 @@ const OUT_PATH = path.join(
  * last because they are the two that can never be NONE: they are computed
  * directly from the solar transit and never route through acos().
  */
-const EVENT_KEYS = [
+const EVENT_KEYS: ReadonlyArray<readonly [keyof SunCalcTimesLike, string]> = [
   ['sunrise', 'SUNRISE'],
   ['sunset', 'SUNSET'],
   ['sunriseEnd', 'SUNRISE_END'],
@@ -105,7 +150,7 @@ const EVENT_KEYS = [
  * Coordinates are given to 4 decimal places because that is exactly the
  * resolution of data/cities.tsv, so a test can feed a city row in unchanged.
  */
-const CASES = [
+const CASES: readonly GoldenCase[] = [
   {
     id: 'G01', lat: 0.0, lon: 0.0, date: '2026-03-20',
     // The origin on the March equinox. Nothing is polar, nothing is near a date
@@ -295,7 +340,7 @@ const CASES = [
  * trade worth making. That only stays safe if no field can contain a comma, so
  * enforce it here rather than discovering it as a mis-parsed golden.
  */
-function assertNoCommas(value, where) {
+function assertNoCommas(value: string, where: string): void {
   if (String(value).includes(',')) {
     throw new Error(`${where} contains a comma, which the Kotlin CSV reader cannot survive: ${value}`);
   }
@@ -307,27 +352,28 @@ function assertNoCommas(value, where) {
  * carried all the way through. Calling toISOString() on one throws a RangeError,
  * so the emptiness has to be tested before the formatting, never caught after.
  */
-function formatInstant(date) {
+function formatInstant(date: unknown): string {
   if (!(date instanceof Date) || Number.isNaN(date.getTime())) return 'NONE';
   return date.toISOString();
 }
 
-function main() {
-  const rows = [['case_id', 'description', 'lat', 'lon', 'date', 'event', 'expected_utc']];
-  const seenIds = new Set();
-  const summary = [];
+function main(): void {
+  const check = process.argv.includes('--check');
+  const rows: string[][] = [['case_id', 'description', 'lat', 'lon', 'date', 'event', 'expected_utc']];
+  const seenIds = new Set<string>();
+  const summary: Array<{ id: string; desc: string; absent: string[] }> = [];
 
   for (const c of CASES) {
     if (seenIds.has(c.id)) throw new Error(`duplicate case id ${c.id}`);
     seenIds.add(c.id);
     assertNoCommas(c.desc, `${c.id} description`);
 
-    const [year, month, day] = c.date.split('-').map(Number);
+    const [year, month, day] = c.date.split('-').map(Number) as [number, number, number];
     // The app.js section 9.2 anchoring rule, transcribed rather than paraphrased.
     const anchor = new Date(Date.UTC(year, month - 1, day, 12, 0, 0));
     const times = SunCalc.getTimes(anchor, c.lat, c.lon);
 
-    const absent = [];
+    const absent: string[] = [];
     for (const [jsKey, enumName] of EVENT_KEYS) {
       const value = formatInstant(times[jsKey]);
       if (value === 'NONE') absent.push(enumName);
@@ -338,8 +384,7 @@ function main() {
     summary.push({ id: c.id, desc: c.desc, absent });
   }
 
-  fs.mkdirSync(path.dirname(OUT_PATH), { recursive: true });
-  fs.writeFileSync(OUT_PATH, rows.map((r) => r.join(',')).join('\n') + '\n', 'utf8');
+  const csv = rows.map((r) => r.join(',')).join('\n') + '\n';
 
   // Self-check. These are the three properties the corpus would be worthless
   // without, and they are cheap enough to verify on every regeneration rather
@@ -349,10 +394,12 @@ function main() {
   if (dataRows !== expected) throw new Error(`emitted ${dataRows} rows, expected ${expected}`);
 
   const g13 = summary.find((s) => s.id === 'G13');
+  if (!g13) throw new Error('G13 is missing');
   if (g13.absent.length !== 12 || g13.absent.includes('SOLAR_NOON') || g13.absent.includes('NADIR')) {
     throw new Error('G13 must have exactly the twelve angle events absent and both transit events present');
   }
   const g12 = summary.find((s) => s.id === 'G12');
+  if (!g12) throw new Error('G12 is missing');
   if (!g12.absent.includes('SUNRISE') || !g12.absent.includes('SUNSET')
       || g12.absent.includes('SOLAR_NOON') || g12.absent.includes('NIGHT')) {
     throw new Error('G12 must have no sunrise or sunset, but a real solar noon and astronomical dusk');
@@ -362,13 +409,27 @@ function main() {
   // the date or the longitude would quietly turn the discriminator back into an
   // ordinary Fiji row, and nothing else in the suite would notice.
   const g25 = CASES.find((c) => c.id === 'G25');
-  const [gy, gm, gd] = g25.date.split('-').map(Number);
+  if (!g25) throw new Error('G25 is missing');
+  const [gy, gm, gd] = g25.date.split('-').map(Number) as [number, number, number];
   const g25Days = Date.UTC(gy, gm - 1, gd, 12, 0, 0) / 864e5 - 0.5 + 2440588 - 2451545;
   const g25Arg = g25Days - 9e-4 - (Math.PI / 180 * -g25.lon) / (2 * Math.PI);
   if (g25Arg - Math.floor(g25Arg) !== 0.5 || Math.floor(g25Arg) % 2 !== 0) {
     throw new Error(`G25 no longer sits on an even-valued julianCycle tie (argument ${g25Arg}); it discriminates nothing`);
   }
 
+  if (check) {
+    // --check: compare only, after the same self-checks a write would have run.
+    let committed = '';
+    try { committed = readFileSync(OUT_PATH, 'utf8'); } catch { committed = ''; }
+    if (committed !== csv) {
+      process.stderr.write(`${OUT_PATH} is NOT what tools/gen-solar-golden.ts writes: run it and review the diff\n`);
+      process.exit(1);
+    }
+    process.stdout.write(`golden check OK: ${OUT_PATH} matches, ${dataRows} data rows\n`);
+    return;
+  }
+  mkdirSync(dirname(OUT_PATH), { recursive: true });
+  writeFileSync(OUT_PATH, csv, 'utf8');
   process.stdout.write(`wrote ${OUT_PATH}\n`);
   process.stdout.write(`${CASES.length} cases x ${EVENT_KEYS.length} events = ${dataRows} data rows\n\n`);
   for (const s of summary) {
