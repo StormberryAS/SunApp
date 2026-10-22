@@ -51,6 +51,10 @@ function init() {
     els.latInput.addEventListener('input', () => { setFieldError(els.latInput, els.latError, null); setEcho(null); });
     els.lonInput.addEventListener('input', () => { setFieldError(els.lonInput, els.lonError, null); setEcho(null); });
     els.calculateBtn.addEventListener('click', onCalculate);
+    try {
+        offlinePilot();
+    }
+    catch { }
 }
 function switchTab(tab) {
     state.tab = tab;
@@ -384,5 +388,23 @@ function clearError() {
 }
 function showLoading(show) {
     els.loadingOverlay.hidden = !show;
+}
+const OFFLINE_PILOT = 'opt-in';
+function offlinePilot() {
+    if (!('serviceWorker' in navigator))
+        return;
+    if (location.protocol !== 'https:' || location.hostname !== 'sun.stormberry.as')
+        return;
+    const sw = navigator.serviceWorker;
+    if (OFFLINE_PILOT === 'off') {
+        void sw.getRegistrations().then((rs) => Promise.all(rs.map((r) => r.unregister())))
+            .then(() => caches.keys())
+            .then((ks) => Promise.all(ks.filter((k) => k.startsWith('sunapp-')).map((k) => caches.delete(k))))
+            .catch(() => undefined);
+        return;
+    }
+    if (OFFLINE_PILOT === 'opt-in' && new URLSearchParams(location.search).get('offline') !== '1' && !sw.controller)
+        return;
+    void sw.register('sw.js', { scope: './', updateViaCache: 'none' }).catch(() => undefined);
 }
 document.addEventListener('DOMContentLoaded', init);

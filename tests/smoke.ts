@@ -91,12 +91,12 @@ await check('the compiled app.js is what is served, under its current stamp', as
 });
 
 await check('sources, tooling and tests are not served; the site is', async () => {
-  const hidden = ['ts/app.ts', 'ts/app-dom.d.ts', 'ts/cities.d.ts', 'tests/smoke.ts', 'tests/page-vectors.json', 'tests/serve.py', 'tools/build-ts.sh',
+  const hidden = ['ts/app.ts', 'ts/sw.ts', 'tsconfig.sw.json', 'tests/sw-smoke.ts', 'ts/app-dom.d.ts', 'ts/cities.d.ts', 'tests/smoke.ts', 'tests/page-vectors.json', 'tests/serve.py', 'tools/build-ts.sh',
     'tools/gen-solar-golden.ts', 'tools/check-city-parity.py', 'package.json', 'package-lock.json', 'tsconfig.json', '.npmrc', '.gitattributes',
     'node_modules/typescript/package.json', 'bump_assets.py', 'update_cities.py', 'README.md', 'data/cities.tsv', 'android/README.md', 'zapstore.yaml',
     'jsconfig.json', 'types/app.d.ts'];
   for (const path of hidden) assert.equal((await fetch(`${base}${path}`)).status, 404, `${path} is not served`);
-  for (const path of ['', 'index.html', 'app.js', 'cities.js', 'suncalc.js', 'style.css', 'disclaimer.html', 'favicon.svg', 'fonts/inter/inter.css']) {
+  for (const path of ['', 'index.html', 'app.js', 'sw.js', 'cities.js', 'suncalc.js', 'style.css', 'disclaimer.html', 'favicon.svg', 'fonts/inter/inter.css']) {
     assert.equal((await fetch(`${base}${path}`)).status, 200, `${path || '/'} is served`);
   }
 });

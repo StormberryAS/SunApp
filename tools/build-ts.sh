@@ -9,10 +9,16 @@
 # Android app (the app is native Kotlin with no WebView), so EclipseTracker's tsconfig.core.json,
 # build-eclipse-data.py and bridge steps have nothing to do here and are left out.
 #
+# The service worker of the offline pilot (21 October 2026), ts/sw.ts, compiles to sw.js the same
+# way, as a second program: tsconfig.sw.json checks it against the WebWorker library instead of the
+# DOM (it runs in a worker, where there is no document), and tsconfig.json leaves it out. Both
+# programs write into one scratch folder, so everything below treats app.js and sw.js alike.
+#
 #   tools/build-ts.sh           install the pinned compiler, compile every ts/**/*.ts (the .d.ts
 #                               declarations aside) into the .js of the same path at the repository
-#                               root (ts/app.ts -> app.js), then run bump_assets.py so every page
-#                               carries the current ?v= stamp
+#                               root (ts/app.ts -> app.js, ts/sw.ts -> sw.js), then run
+#                               bump_assets.py so every page, and the file list in sw.js, carries
+#                               the current ?v= stamp
 #   tools/build-ts.sh --force   the same, but overwrite a compiled .js even when it holds a hand edit
 #   tools/build-ts.sh --check   change nothing: fail when a compiled .js is missing, is not tracked
 #                               by git, or is not (stamps aside) byte for byte what ts/ compiles to;
@@ -29,10 +35,11 @@
 # The compiled .js files are committed on purpose: GitHub Pages publishes the repository's files as
 # they are, with no build step of its own. Edit ts/*.ts, never the .js.
 #
-# Stamps. SunApp's app.js imports nothing, so today a compiled file carries no ?v= stamp and the
-# comparisons below would work without normalise(). It is kept, as in EclipseTracker, so that a
-# stamped relative URL inside compiled output (a ./x.js?v=0123abcd or ./x.css?v=0123abcd literal)
-# never counts as a difference; bump_assets.py --check proves the stamps themselves are current.
+# Stamps. app.js imports nothing and carries no ?v= stamp, but sw.js does: bump_assets.py stamps the
+# './x.js' and './x.css' literals of its file list. normalise() strips them, as in EclipseTracker,
+# so a stamped relative URL inside compiled output (a ./x.js?v=0123abcd or ./x.css?v=0123abcd
+# literal) never counts as a difference; bump_assets.py --check proves the stamps themselves are
+# current.
 #
 # Hand edits. A build never overwrites a compiled .js silently. It writes only when the .js now at
 # the root, normalised, is one some ts/ source produced: what the committed ts/ (HEAD) compiles to,
@@ -78,6 +85,7 @@ nsha() { normalise "$1" | sha256sum | cut -d' ' -f1; }
 
 "${TSC[@]}" -p "$ROOT/tests/tsconfig.json" || die "the tests or the Node tools (tests/*.ts, tools/*.ts) do not type-check; nothing was written"
 "${TSC[@]}" -p "$ROOT/tsconfig.json" --outDir "$tmp/out" || die "ts/ does not compile; nothing was written"
+"${TSC[@]}" -p "$ROOT/tsconfig.sw.json" --outDir "$tmp/out" || die "ts/sw.ts does not compile; nothing was written"
 
 mapfile -t OUTPUTS < <(cd "$tmp/out" && find . -type f -printf '%P\n' | LC_ALL=C sort)
 mapfile -t EXPECTED < <(cd ts && find . -type f -name '*.ts' ! -name '*.d.ts' -printf '%P\n' | sed 's/\.ts$/.js/' | LC_ALL=C sort)
@@ -126,8 +134,13 @@ STATE=""
 if [ "$MODE" = build ]; then
   if [ "$GIT" = 1 ] && git cat-file -e HEAD:tsconfig.json 2>/dev/null && git cat-file -e HEAD:ts 2>/dev/null; then
     mkdir -p "$tmp/head"
-    git archive HEAD tsconfig.json ts | tar -x -C "$tmp/head"
+    head_sw=()
+    git cat-file -e HEAD:tsconfig.sw.json 2>/dev/null && head_sw=(tsconfig.sw.json)
+    git archive HEAD tsconfig.json "${head_sw[@]}" ts | tar -x -C "$tmp/head"
     "${TSC[@]}" -p "$tmp/head/tsconfig.json" --outDir "$tmp/head-out" >/dev/null 2>&1 || true
+    if [ "${#head_sw[@]}" -gt 0 ]; then
+      "${TSC[@]}" -p "$tmp/head/tsconfig.sw.json" --outDir "$tmp/head-out" >/dev/null 2>&1 || true
+    fi
   fi
   hand=()
   for f in "${OUTPUTS[@]}"; do

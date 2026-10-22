@@ -25,5 +25,7 @@
   "include": [
     "ts/**/*.ts"
   ],
-  "exclude": []
+  "exclude": [
+    "ts/sw.ts"
+  ]
 }

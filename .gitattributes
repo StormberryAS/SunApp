@@ -5,6 +5,8 @@
 #
 # app.js is compiled from ts/app.ts by tools/build-ts.sh; edit the TypeScript.
 /app.js linguist-generated=true
+# sw.js, the offline pilot's service worker, is compiled from ts/sw.ts the same way.
+/sw.js linguist-generated=true
 # cities.js is the shared Labs city catalogue, written by update_cities.py into nine app
 # repositories in one run (with data/cities.tsv, which tools/check-city-parity.py holds it to).
 /cities.js linguist-generated=true

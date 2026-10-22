@@ -34,5 +34,8 @@ exclude:
   - package-lock.json
   - .npmrc
   - tsconfig.json
+# The offline pilot (21 October 2026): ts/sw.ts compiles to sw.js, which IS published (the page
+# registers it); its compiler settings are not.
+  - tsconfig.sw.json
   - ts/
   - tests/

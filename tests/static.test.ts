@@ -7,7 +7,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
-import { readFileSync, readdirSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { defined } from './helpers.ts';
 
 const read = (p: string): string => readFileSync(new URL(`../${p}`, import.meta.url), 'utf8');
@@ -54,10 +54,10 @@ test('every local script and stylesheet carries the ?v= stamp of its current byt
 test('_config.yml keeps sources, tooling and tests off the site, and publishes the app', () => {
   const cfg = read('_config.yml');
   const excluded = [...cfg.matchAll(/^ {2}- (\S+)$/gm)].map((m) => m[1]);
-  for (const x of ['ts/', 'tools/', 'tests/', 'node_modules/', 'package.json', 'package-lock.json', 'tsconfig.json', '.npmrc', 'bump_assets.py', 'update_cities.py', 'README.md', 'DISCLAIMER.md', 'LICENSE', 'NOTICE', 'android/', 'data/', 'fastlane/', 'zapstore.yaml']) {
+  for (const x of ['ts/', 'tools/', 'tests/', 'node_modules/', 'package.json', 'package-lock.json', 'tsconfig.json', 'tsconfig.sw.json', '.npmrc', 'bump_assets.py', 'update_cities.py', 'README.md', 'DISCLAIMER.md', 'LICENSE', 'NOTICE', 'android/', 'data/', 'fastlane/', 'zapstore.yaml']) {
     assert.ok(excluded.includes(x), `${x} is excluded`);
   }
-  for (const x of ['app.js', 'cities.js', 'suncalc.js', 'index.html', 'style.css', 'disclaimer.html', 'fonts/', 'switcher-icons/']) assert.ok(!excluded.includes(x), `${x} is published`);
+  for (const x of ['app.js', 'sw.js', 'cities.js', 'suncalc.js', 'index.html', 'style.css', 'disclaimer.html', 'fonts/', 'switcher-icons/']) assert.ok(!excluded.includes(x), `${x} is published`);
   // Gone with the move: nothing may still point at them.
   for (const x of ['jsconfig.json', 'types/']) assert.ok(!excluded.includes(x), `${x} no longer exists`);
 });
@@ -139,4 +139,82 @@ test('the only JavaScript is compiled, generated or vendored, and marked so (S-1
   const generated = attr('linguist-generated', [...compiled, 'cities.js']);
   for (const f of [...compiled, 'cities.js']) assert.equal(generated.get(f), 'true', `${f} is linguist-generated`);
   assert.equal(attr('linguist-vendored', ['suncalc.js']).get('suncalc.js'), 'true', 'suncalc.js is linguist-vendored');
+});
+
+// The offline pilot (21 October 2026): ts/sw.ts, compiled to sw.js, registered by offlinePilot() in
+// ts/app.ts on https://sun.stormberry.as only. tests/sw-smoke.ts runs it in Chromium.
+const listed = (src: string): string[] => {
+  const m = /const ASSETS(?:: readonly string\[\])? = \[([\s\S]*?)\];/.exec(src);
+  return [...defined(m?.[1], 'the ASSETS list').matchAll(/'([^']*)'/g)].map((x) => defined(x[1], 'an entry'));
+};
+const stampOfFile = (path: string): string => createHash('sha256').update(readFileSync(new URL(`../${path}`, import.meta.url))).digest('hex').slice(0, 8);
+
+test('offline pilot: sw.js stores exactly what the pages load, under the stamps the pages use', () => {
+  const assets = listed(read('sw.js'));
+  // ts/sw.ts holds the same list without stamps; bump_assets.py writes them into sw.js.
+  assert.deepEqual(listed(read('ts/sw.ts')), assets.map((a) => a.replace(/\?v=[0-9a-f]{8}$/, '')));
+  assert.equal(new Set(assets).size, assets.length, 'no entry twice');
+  // Every script and stylesheet the two pages load, with the stamp they load it under.
+  const pageRefs = new Set<string>();
+  for (const html of ['index.html', 'disclaimer.html']) {
+    for (const m of read(html).matchAll(/(?:src|href)="((?!https?:|\/\/|data:|#|mailto:)[^"?#]+\.(?:js|css)\?v=[0-9a-f]{8})"/g)) pageRefs.add(`./${m[1]}`);
+  }
+  assert.deepEqual(assets.filter((a) => /\?v=/.test(a)).sort(), [...pageRefs].sort());
+  for (const a of assets) {
+    const m = /^\.\/([^?]*)(?:\?v=([0-9a-f]{8}))?$/.exec(a);
+    assert.ok(m, `${a} is a relative path`);
+    const path = defined(m[1], 'path') || 'index.html';
+    assert.ok(existsSync(new URL(`../${path}`, import.meta.url)), `${a} exists`);
+    if (m[2]) assert.equal(m[2], stampOfFile(path), `${a} carries the hash of ${path}`);
+    if (/\.(js|css)$/.test(path)) assert.ok(m[2], `${a} is stamped`);
+  }
+  // The rest: the page itself, the disclaimer, the font the page preloads and its italic (the
+  // disclaimer's last paragraph), the favicon and every carousel icon.
+  const icons = readdirSync(new URL('../switcher-icons/', import.meta.url)).filter((n) => n.endsWith('.svg')).sort().map((n) => `./switcher-icons/${n}`);
+  assert.deepEqual(assets.filter((a) => !/\?v=/.test(a)), ['./', './fonts/inter/InterVariable.woff2', './fonts/inter/InterVariable-Italic.woff2', './favicon.svg', './disclaimer.html', ...icons]);
+  assert.match(page, /<link rel="preload" href="fonts\/inter\/InterVariable\.woff2" as="font"/);
+  // The Home Screen icon (e1b6591) is linked by both pages but deliberately not stored: iOS fetches
+  // it online when the page is added, and precaching is all or nothing, so a listed file that went
+  // missing would fail every install.
+  for (const html of ['index.html', 'disclaimer.html']) {
+    assert.match(read(html), /<link rel="apple-touch-icon" href="apple-touch-icon\.png" \/>/, `${html} links the Home Screen icon`);
+  }
+  assert.ok(!assets.some((a) => a.includes('apple-touch-icon')), 'the Home Screen icon is not precached');
+});
+
+// The worker's precache and keepPage() treat every ?v= reference in a stored page as a same-origin
+// script or stylesheet it must hold (fix round 2, verify 1 offline C-4): an absolute or other kind
+// of ?v= reference would make every install fail without a word, so it fails here instead.
+test('offline pilot: every ?v= reference in the stored pages is a relative .js or .css path', () => {
+  for (const html of ['index.html', 'disclaimer.html']) {
+    const refs = [...read(html).matchAll(/(?:src|href)="([^"]*\?v=[^"]*)"/g)].map((m) => defined(m[1], 'a reference'));
+    assert.ok(refs.length > 0, `${html} has stamped references`);
+    for (const r of refs) assert.match(r, /^(?![a-z][a-z0-9+.-]*:|\/)[^"?#]+\.(?:js|css)\?v=[0-9a-f]{8}$/, `${html}: ${r}`);
+  }
+});
+
+test('offline pilot: registered only on https://sun.stormberry.as; no manifest, no theme colour', () => {
+  const app = read('ts/app.ts');
+  assert.match(app, /if \(location\.protocol !== 'https:' \|\| location\.hostname !== 'sun\.stormberry\.as'\) return;/);
+  // A bare 'sw.js', never './sw.js': the worker's address has to stay the same for the browser to
+  // update it in place, and the './x.js' form is the one bump_assets.py stamps in sw.js, so keeping
+  // the register call to the bare form keeps that convention unambiguous should app.js ever be
+  // stamped the same way. Today bump_assets.py stamps literals in sw.js only.
+  assert.match(app, /sw\.register\('sw\.js', \{ scope: '\.\/', updateViaCache: 'none' \}\)/);
+  assert.match(app, /^const OFFLINE_PILOT = '(off|opt-in|on)' as 'off' \| 'opt-in' \| 'on';$/m);
+  assert.match(app, /^  try \{ offlinePilot\(\); \} catch \{/m);
+  assert.match(read('ts/sw.ts'), /^const KILL = (true|false) as boolean;$/m);
+  for (const html of ['index.html', 'disclaimer.html']) {
+    const text = read(html);
+    assert.doesNotMatch(text, /rel="manifest"/, `${html} has no manifest (it would let Chrome on Android offer an install that competes with Zapstore)`);
+    assert.doesNotMatch(text, /name="theme-color"/, `${html} has no theme colour`);
+    assert.doesNotMatch(text, /sw\.js/, `${html} does not load the worker as a script`);
+  }
+  // The worker is checked as a worker: no DOM, the WebWorker library, and kept out of the page program.
+  const swc = JSON.parse(read('tsconfig.sw.json'));
+  assert.equal(swc.extends, './tsconfig.json');
+  assert.deepEqual(swc.compilerOptions.lib, ['ES2020', 'WebWorker']);
+  assert.deepEqual(swc.include, ['ts/sw.ts']);
+  assert.deepEqual(JSON.parse(read('tsconfig.json')).exclude, ['ts/sw.ts']);
+  assert.match(read('tools/build-ts.sh'), /tsconfig\.sw\.json/);
 });

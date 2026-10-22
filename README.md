@@ -53,9 +53,13 @@ tools/build-ts.sh            # npm ci (frozen, install scripts off), type-check,
 tools/build-ts.sh --check    # change nothing; fail if app.js is stale, a stamp is stale or the city data disagree
 npm test                     # unit tests: page helpers, golden corpus, city parity, day classifier, the TypeScript rule
 npm run smoke                # the page in headless Chromium, against snapshots captured from SunApp 1.1.3
+npm run sw-smoke             # the offline pilot's service worker in headless Chromium, under the real host name
 node tools/gen-solar-golden.ts [--check]   # (re)write the Android port's solar golden corpus
 ```
-`package.json`, `package-lock.json`, `.npmrc`, `tsconfig.json`, `ts/`, `tests/`, `tools/` and `node_modules/` are development files only: `_config.yml` keeps them off the site, and the Android build copies only `data/cities.tsv`.
+`package.json`, `package-lock.json`, `.npmrc`, `tsconfig.json`, `tsconfig.sw.json`, `ts/`, `tests/`, `tools/` and `node_modules/` are development files only: `_config.yml` keeps them off the site, and the Android build copies only `data/cities.tsv`.
+
+### Offline pilot (iPhone Home Screen)
+A service worker (`ts/sw.ts`, compiled to `sw.js`) lets the site open with no network after one online visit, for the Home Screen web app on iPhone. It registers only on `https://sun.stormberry.as`, never on the onion mirror, on `localhost` or on any other host, and the Android app never loads the web page at all. While `OFFLINE_PILOT` in `ts/app.ts` is `'opt-in'`, only a visit to `https://sun.stormberry.as/?offline=1` installs it. Pages are fetched from the network first and fall back to the stored copy only when there is no network; scripts and stylesheets are stored under their `?v=` stamps, which `bump_assets.py` also writes into `sw.js`, so every release replaces the stored files. To switch it off, set `OFFLINE_PILOT` to `'off'` (every device drops it on its next visit) or `KILL` in `ts/sw.ts` to `true`, then build and deploy. Once the worker has shipped, never delete `sw.js` and never revert the pilot as a whole: a device keeps its worker while `sw.js` answers 404, and with `offlinePilot()` gone from `app.js` neither switch can reach it. To end the pilot, deploy `OFFLINE_PILOT = 'off'` and `KILL = true` together and keep both served for at least three months (a Home Screen app can go unopened for weeks); only then remove the code. If `sw.js` was removed by mistake, serving a `sw.js` with `KILL = true` again clears the worker at each device's next visit.
 
 ## Credits
 Built by [Stormberry AS](https://stormberry.as). Proudly powered by sovereign AI agents.
