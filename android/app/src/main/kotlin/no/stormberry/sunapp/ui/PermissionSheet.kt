@@ -111,6 +111,8 @@ fun RefreshOnResume(onResume: () -> Unit) {
  * @param gaps what the platform is currently refusing, from [AlarmCapability.gaps]. An empty
  *   list is a real and common state: on API 24 to 30 with notifications on, nothing here is
  *   askable, and the sheet says so in one line rather than inventing something to request.
+ * @param firstAlarm true when the sheet opens because the first alarm is being created, false
+ *   when it was opened from the alarm list's warning banner ([permissionSheetReason]).
  * @param onRefresh called after anything that might have changed an answer. The caller
  *   re-reads and passes new [gaps] down; this composable holds no capability state of its
  *   own, so it can never show a stale grant.
@@ -124,6 +126,7 @@ fun RefreshOnResume(onResume: () -> Unit) {
 @Composable
 fun PermissionSheet(
     gaps: List<AlarmCapabilityGap>,
+    firstAlarm: Boolean,
     onRefresh: () -> Unit,
     onContinue: () -> Unit,
     onDismiss: () -> Unit,
@@ -172,8 +175,7 @@ fun PermissionSheet(
             )
             Spacer(Modifier.height(8.dp))
             Text(
-                text = "You are seeing this because you are creating your first alarm, and " +
-                    "for no other reason.",
+                text = permissionSheetReason(firstAlarm),
                 style = MaterialTheme.typography.bodyMedium,
                 color = Sun.TextSecondary,
             )
@@ -194,12 +196,16 @@ fun PermissionSheet(
                 Spacer(Modifier.height(10.dp))
                 gaps.forEachIndexed { index, gap ->
                     if (index > 0) Spacer(Modifier.height(12.dp))
+                    // 1.1.4, A-1: NOTIFICATIONS also covers a ring channel turned down while
+                    // notifications are on. The runtime dialog cannot fix that (the permission is
+                    // already granted, so it would do nothing), only the channel's own page can.
+                    val askable = gap == AlarmCapabilityGap.NOTIFICATIONS &&
+                        Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+                        !AlarmCapability.notificationsEnabled(activity)
                     GapRow(
                         gap = gap,
                         onFix = {
-                            if (gap == AlarmCapabilityGap.NOTIFICATIONS &&
-                                Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU
-                            ) {
+                            if (askable) {
                                 // The runtime dialog is a far better first ask than a trip to
                                 // Settings, and it only exists from API 33.
                                 notificationLauncher.launch(
@@ -211,10 +217,7 @@ fun PermissionSheet(
                         },
                         onSettings = {
                             activity.open(AlarmCapability.settingsIntent(activity, gap))
-                        }.takeIf {
-                            gap == AlarmCapabilityGap.NOTIFICATIONS &&
-                                Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU
-                        },
+                        }.takeIf { askable },
                     )
                 }
             }
@@ -254,6 +257,18 @@ fun PermissionSheet(
         }
     }
 }
+
+/**
+ * Why the sheet is showing, in one sentence. For the first alarm it says so, as the owner's
+ * decision 4 asks. Opened from the alarm list's warning banner it says what the permissions are
+ * for instead: 1.1.3 claimed the first alarm there too, which was untrue (fixed in 1.1.4).
+ */
+fun permissionSheetReason(firstAlarm: Boolean): String =
+    if (firstAlarm) {
+        "You are seeing this because you are creating your first alarm, and for no other reason."
+    } else {
+        "SunApp needs this to ring your alarms reliably."
+    }
 
 /**
  * One refusal: what it costs, and the button that fixes it.

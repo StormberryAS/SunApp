@@ -1,0 +1,7 @@
+1.1.4 makes alarms harder to lose.
+
+- With notifications off or turned down, the alarm still rings; open SunApp to stop it.
+- On Android 12 with exact alarms off, alarms ring through a notification instead of
+  staying silent.
+- Deleting or switching off an alarm cancels its snooze, and snoozes survive a restart.
+- A second alarm reports the first as missed.

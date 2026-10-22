@@ -27,9 +27,10 @@
           cap is why it is a one-time Settings deep link on 31/32 rather than a
           permanent entry in the listing of a modern install.
       POST_NOTIFICATIONS
-          The alarm rings through a notification, so on Android 13 and later this is
-          what makes ringing possible at all; it is the only runtime dialog the app
-          ever shows.
+          The alarm shows through a notification, so on Android 13 and later this is
+          what puts it, with Snooze and Dismiss, on the screen and over the lock screen
+          (without it the alarm still sounds and opening the app stops it, 1.1.4); it
+          is the only runtime dialog the app ever shows.
       RECEIVE_BOOT_COMPLETED
           A reboot erases every pending alarm, so SystemEventReceiver recomputes and
           re-arms them when the device comes back, including before the first unlock.

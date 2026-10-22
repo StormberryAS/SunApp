@@ -22,6 +22,7 @@ internal class FakeAlarmSink : AlarmSink {
     sealed interface Call {
         data class Arm(val planned: PlannedAlarm) : Call
         data class Cancel(val requestCode: Int) : Call
+        data class Guard(val next: PlannedAlarm?) : Call
     }
 
     private val log = mutableListOf<Call>()
@@ -34,6 +35,9 @@ internal class FakeAlarmSink : AlarmSink {
 
     /** Every request code cancelled, in order, including any cancelled more than once. */
     val cancelled: List<Int> get() = log.filterIsInstance<Call.Cancel>().map { it.requestCode }
+
+    /** Every backstop request (1.1.4, A-2), in order; null means "cancel the backstop". */
+    val guards: List<PlannedAlarm?> get() = log.filterIsInstance<Call.Guard>().map { it.next }
 
     /** The request codes currently armed, which is what a caller would persist between runs. */
     val armedCodes: Set<Int> get() = armed.map { it.requestCode }.toSet()
@@ -51,5 +55,9 @@ internal class FakeAlarmSink : AlarmSink {
 
     override fun cancel(requestCode: Int) {
         log += Call.Cancel(requestCode)
+    }
+
+    override fun guard(next: PlannedAlarm?) {
+        log += Call.Guard(next)
     }
 }

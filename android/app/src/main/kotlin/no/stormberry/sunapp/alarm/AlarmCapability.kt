@@ -14,9 +14,10 @@ import androidx.core.app.NotificationManagerCompat
  *
  * Modelled as data rather than as a boolean triple because all three are individually
  * survivable and individually degrading, and the difference matters to the user. A denied
- * full-screen intent still rings; a denied notification does not ring at all. A screen that
- * collapses the three into "permissions missing" cannot tell the user which of those two
- * situations they are in, and the second one is the one that makes a person late for work.
+ * full-screen intent still rings and shows a notification; a denied notification still rings
+ * but shows nothing to stop it with (1.1.4: 1.1.3 believed it did not ring at all). A screen
+ * that collapses the three into "permissions missing" cannot tell the user which of those
+ * situations they are in.
  *
  * The text lives on the enum instead of in `strings.xml` deliberately for now: `res/` is a
  * shared file and this whole surface is one screen's worth of copy. It should move to string
@@ -27,9 +28,9 @@ import androidx.core.app.NotificationManagerCompat
  *   second: users do not act on "permission X is not granted", they act on "your alarm will
  *   not make a sound".
  * @property fixLabel the button that opens [AlarmCapability.settingsIntent].
- * @property blocking true when an alarm cannot ring at all in this state. Exactly one gap is
- *   blocking, and the alarm row is expected to carry a persistent banner for it rather than a
- *   dismissible toast.
+ * @property blocking true when an alarm rings with nothing on screen to stop it in this state.
+ *   Exactly one gap is blocking, and the alarm row is expected to carry a persistent banner for
+ *   it rather than a dismissible toast.
  */
 enum class AlarmCapabilityGap(
     val title: String,
@@ -38,26 +39,32 @@ enum class AlarmCapabilityGap(
     val blocking: Boolean,
 ) {
     /**
-     * Notifications are switched off for the app, so the foreground service that plays the
-     * alarm cannot show its notification and Android will not let it run.
+     * Notifications are switched off for the app, or its "Ringing alarms" channel is blocked or
+     * turned below High (1.1.4, A-1), or so is its "Ringing alarms, backup" channel, which rings
+     * the alarm when the service cannot (A-2, A-4; fix round 3, code review C-1). The alarm still
+     * rings, but the ring notification and the ring screen may not show, so nothing on screen
+     * stops it; opening SunApp shows the ring screen (MainActivity). Before 1.1.4 the text said it
+     * could not make a sound, which was false, and a lowered channel was not reported at all.
      */
     NOTIFICATIONS(
-        title = "Notifications are switched off",
-        explanation = "SunApp rings through a notification. With notifications blocked an alarm " +
-            "can still be armed, but it cannot make a sound and it cannot take over the screen.",
+        title = "Notifications are off or turned down",
+        explanation = "Notifications are off or turned down for SunApp, so an alarm still rings " +
+            "but may show nothing on screen. Open SunApp to stop it.",
         fixLabel = "Turn on notifications",
         blocking = true,
     ),
 
     /**
-     * Exact alarms are not permitted, which on Android 12 and 13 is a switch the user can
-     * turn off. SunApp keeps the alarm armed and falls back to an inexact wakeup, so this is
-     * a degradation rather than a failure.
+     * Exact alarms are not permitted, which on Android 12 and 12L is a switch the user can turn
+     * off. SunApp keeps the alarm armed inexactly, with a backstop for the nearest one, and
+     * re-arms whenever it is opened (1.1.4, A-2). An inexact alarm can come much later than
+     * "several minutes", and Android may refuse to let it ring in full, so the text no longer
+     * promises either.
      */
     EXACT_ALARMS(
         title = "Exact alarms are not allowed",
-        explanation = "Without permission for exact alarms Android may delay a wakeup to save " +
-            "battery. SunApp still rings, but it can be several minutes late.",
+        explanation = "Without permission for exact alarms, Android may hold an alarm back to " +
+            "save battery, so it may ring late or not at all.",
         fixLabel = "Allow exact alarms",
         blocking = false,
     ),
@@ -113,6 +120,8 @@ object AlarmCapability {
         notificationsEnabled = notificationsEnabled(context),
         canScheduleExactAlarms = canScheduleExactAlarms(context),
         canUseFullScreenIntent = canUseFullScreenIntent(context),
+        ringChannelImportance = channelImportance(context, AlarmService.CHANNEL_RING),
+        backupChannelImportance = channelImportance(context, AlarmService.CHANNEL_RING_BACKUP),
     )
 
     /**
@@ -127,14 +136,28 @@ object AlarmCapability {
      * aspirational.
      *
      * Order is by severity, so a caller that shows only the first row shows the worst one.
+     *
+     * [ringChannelImportance] is the "Ringing alarms" channel's importance as the user left it,
+     * or null where there are no channels (before Android 8) or it does not exist yet (it is
+     * then created at High). Blocked, or below High (no heads-up, no full-screen ring screen),
+     * counts as notifications refused (1.1.4, A-1). [backupChannelImportance] is the same for the
+     * "Ringing alarms, backup" channel, which rings the alarm when the service cannot (fix round 3,
+     * code review C-1): turned down, that ring may show nothing either.
      */
     fun gapsFrom(
         sdkInt: Int,
         notificationsEnabled: Boolean,
         canScheduleExactAlarms: Boolean,
         canUseFullScreenIntent: Boolean,
+        ringChannelImportance: Int? = null,
+        backupChannelImportance: Int? = null,
     ): List<AlarmCapabilityGap> = buildList {
-        if (!notificationsEnabled) add(AlarmCapabilityGap.NOTIFICATIONS)
+        if (!notificationsEnabled ||
+            ringChannelLowered(sdkInt, ringChannelImportance) ||
+            ringChannelLowered(sdkInt, backupChannelImportance)
+        ) {
+            add(AlarmCapabilityGap.NOTIFICATIONS)
+        }
         if (sdkInt >= Build.VERSION_CODES.S && !canScheduleExactAlarms) {
             add(AlarmCapabilityGap.EXACT_ALARMS)
         }
@@ -153,6 +176,43 @@ object AlarmCapability {
      */
     fun notificationsEnabled(context: Context): Boolean =
         NotificationManagerCompat.from(context).areNotificationsEnabled()
+
+    /**
+     * True when a ringing channel ("Ringing alarms" or "Ringing alarms, backup") is blocked or set
+     * below High (IMPORTANCE_HIGH), from Android 8.
+     */
+    fun ringChannelLowered(sdkInt: Int, importance: Int?): Boolean =
+        sdkInt >= Build.VERSION_CODES.O && importance != null &&
+            importance < NotificationManagerCompat.IMPORTANCE_HIGH
+
+    /**
+     * The channel whose own page the NOTIFICATIONS fix opens when notifications are on: the one
+     * ringing channel that is turned down, or null for the app's notification page, which lists
+     * both (neither or both turned down, or notifications off). Fix round 3, code review C-1.
+     */
+    fun channelToFix(
+        sdkInt: Int,
+        notificationsEnabled: Boolean,
+        ringChannelImportance: Int?,
+        backupChannelImportance: Int?,
+    ): String? {
+        if (!notificationsEnabled) return null
+        val ring = ringChannelLowered(sdkInt, ringChannelImportance)
+        val backup = ringChannelLowered(sdkInt, backupChannelImportance)
+        return when {
+            ring && !backup -> AlarmService.CHANNEL_RING
+            backup && !ring -> AlarmService.CHANNEL_RING_BACKUP
+            else -> null
+        }
+    }
+
+    /** The importance of the channel [channelId] now, or null when there is none to read. */
+    fun channelImportance(context: Context, channelId: String): Int? {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return null
+        return NotificationManagerCompat.from(context)
+            .getNotificationChannelCompat(channelId)
+            ?.importance
+    }
 
     /**
      * True when `setAlarmClock` will be honoured exactly.
@@ -185,12 +245,35 @@ object AlarmCapability {
      * denied twice is permanently denied and stops showing its dialog. Every branch falls
      * back to the app's own details page, which exists on every Android version and always
      * has the switch somewhere, so a caller never has to handle "no intent available".
+     *
+     * Every Settings screen opens in a task of its own, never on top of SunApp's (fix round 3,
+     * Android check C-1): left on top of SunApp's task, it would be the first thing SunApp showed
+     * when opened to stop a ringing alarm, one Back press away from the ring screen.
      */
-    fun settingsIntent(context: Context, gap: AlarmCapabilityGap): Intent {
+    fun settingsIntent(context: Context, gap: AlarmCapabilityGap): Intent =
+        settingsIntentFor(context, gap).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+
+    private fun settingsIntentFor(context: Context, gap: AlarmCapabilityGap): Intent {
         val packageUri = Uri.fromParts("package", context.packageName, null)
+        val channel = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            channelToFix(
+                sdkInt = Build.VERSION.SDK_INT,
+                notificationsEnabled = notificationsEnabled(context),
+                ringChannelImportance = channelImportance(context, AlarmService.CHANNEL_RING),
+                backupChannelImportance = channelImportance(context, AlarmService.CHANNEL_RING_BACKUP),
+            )
+        } else {
+            null
+        }
         return when (gap) {
             AlarmCapabilityGap.NOTIFICATIONS ->
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && channel != null) {
+                    // Notifications are on but one ringing channel is turned down: that channel's
+                    // own page, where the switch is (1.1.4, A-1).
+                    Intent(Settings.ACTION_CHANNEL_NOTIFICATION_SETTINGS)
+                        .putExtra(Settings.EXTRA_APP_PACKAGE, context.packageName)
+                        .putExtra(Settings.EXTRA_CHANNEL_ID, channel)
+                } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                     Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS)
                         .putExtra(Settings.EXTRA_APP_PACKAGE, context.packageName)
                 } else {
@@ -223,7 +306,7 @@ object AlarmCapability {
      * no permission at all.
      */
     fun batteryOptimisationSettings(): Intent =
-        Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS)
+        Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
 
     /**
      * Vendor-specific advice for a device whose manufacturer is known to kill background

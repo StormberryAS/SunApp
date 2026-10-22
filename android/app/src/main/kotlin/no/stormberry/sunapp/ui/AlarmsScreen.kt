@@ -42,6 +42,8 @@ import no.stormberry.sunapp.alarm.AlarmCapability
 import no.stormberry.sunapp.alarm.AlarmCapabilityGap
 import no.stormberry.sunapp.alarm.AlarmIntentHandoff
 import no.stormberry.sunapp.alarm.AlarmIntentSeed
+import no.stormberry.sunapp.alarm.AlarmScheduling
+import no.stormberry.sunapp.alarm.FireRules
 import no.stormberry.sunapp.alarm.OccurrenceEngine
 import no.stormberry.sunapp.alarm.model.AlarmRule
 import no.stormberry.sunapp.alarm.model.Occurrence
@@ -99,6 +101,8 @@ fun AlarmsRoot(
     var draft by remember { mutableStateOf<RuleDraft?>(null) }
     var pendingDelete by remember { mutableStateOf<AlarmRule?>(null) }
     var showPermissions by remember { mutableStateOf(false) }
+    // Whether the sheet opened for the first alarm, or from the warning banner (1.1.4).
+    var permissionsForFirstAlarm by remember { mutableStateOf(true) }
     var gaps by remember { mutableStateOf(AlarmCapability.gaps(context)) }
     var catalogue by remember { mutableStateOf<CatalogueState>(CatalogueState.Loading) }
 
@@ -143,7 +147,10 @@ fun AlarmsRoot(
         // Owner's confirmed decision 4: permissions are asked for at the moment the first
         // alarm is created and at no other moment. `rules.isEmpty()` is the whole test, so a
         // user who never opens this tab is never asked anything.
-        if (rules.isEmpty() && gaps.isNotEmpty()) showPermissions = true
+        if (rules.isEmpty() && gaps.isNotEmpty()) {
+            permissionsForFirstAlarm = true
+            showPermissions = true
+        }
         draft = seed
     }
 
@@ -195,10 +202,18 @@ fun AlarmsRoot(
         )
     } else {
         val nextFires = remember(rules, now) {
+            // Each rule's next ring as the planner arms it, after its last ring when that still
+            // counts (fix round 1), so the list never promises an occurrence that has rung and
+            // is not armed again. Device-protected preferences, read from memory once loaded.
+            val lastRung = AlarmScheduling.lastRungAll(context)
             rules.associate { rule ->
                 // A disabled rule has no next firing, and walking a year of solar days to
                 // work that out for a row that says "Off" would be pure waste.
-                rule.id to if (rule.enabled) OccurrenceEngine.nextOccurrence(rule, now) else null
+                rule.id to if (rule.enabled) {
+                    OccurrenceEngine.nextOccurrence(rule, FireRules.planAfter(now, lastRung[rule.id]))
+                } else {
+                    null
+                }
             }
         }
         AlarmsScreen(
@@ -213,7 +228,10 @@ fun AlarmsRoot(
                 commit(rules.map { if (it.id == rule.id) it.copy(enabled = enabled) else it })
             },
             onDelete = { pendingDelete = it },
-            onFixPermissions = { showPermissions = true },
+            onFixPermissions = {
+                permissionsForFirstAlarm = false
+                showPermissions = true
+            },
             modifier = modifier,
         )
     }
@@ -221,6 +239,7 @@ fun AlarmsRoot(
     if (showPermissions) {
         PermissionSheet(
             gaps = gaps,
+            firstAlarm = permissionsForFirstAlarm,
             onRefresh = { gaps = AlarmCapability.gaps(context) },
             onContinue = { showPermissions = false },
             onDismiss = { showPermissions = false },

@@ -4,6 +4,7 @@ import no.stormberry.sunapp.alarm.model.AlarmRule
 import no.stormberry.sunapp.alarm.model.Occurrence
 import java.time.Clock
 import java.time.Instant
+import java.time.ZoneId
 
 /**
  * One rule's next firing together with the identifier the platform will remember it by.
@@ -52,12 +53,23 @@ object AlarmPlanner {
      * not stop the other alarms being re-armed. A rule that vanishes here is visible in the
      * UI as "not scheduled" rather than being silently deleted.
      */
-    fun plan(rules: List<AlarmRule>, now: Instant): List<PlannedAlarm> =
+    fun plan(rules: List<AlarmRule>, now: Instant): List<PlannedAlarm> = plan(rules, now, emptyMap())
+
+    /**
+     * The alarms that should be pending as of [now], given the instant each rule last rang
+     * ([lastRung], epoch milliseconds by rule id; 1.1.4).
+     *
+     * A rule's next occurrence is looked for strictly after the later of [now] and its last ring,
+     * so an occurrence that has rung is never armed again. Without that, a clock set back after
+     * a ring, or an alarm that arrived up to two seconds early, re-armed the occurrence that had
+     * just rung and it rang twice; and the Android 12 backstop would ring every alarm twice.
+     */
+    fun plan(rules: List<AlarmRule>, now: Instant, lastRung: Map<String, Long>): List<PlannedAlarm> =
         rules.asSequence()
             .filter { it.enabled }
             .mapNotNull { rule ->
                 val next = try {
-                    OccurrenceEngine.nextOccurrence(rule, now)
+                    OccurrenceEngine.nextOccurrence(rule, FireRules.planAfter(now, lastRung[rule.id]))
                 } catch (_: RuntimeException) {
                     // Practically: ZoneId.of on an identifier retired from tzdb. See the
                     // zone note in OccurrenceEngine's KDoc for why the engine throws here
@@ -87,11 +99,66 @@ object AlarmPlanner {
         plan: List<PlannedAlarm>,
         sink: AlarmSink,
         previouslyArmed: Set<Int> = emptySet(),
+        backstop: Boolean = false,
+        snoozes: List<PlannedAlarm> = emptyList(),
     ): Set<Int> {
         val wanted = plan.map { it.requestCode }.toSet()
         for (stale in previouslyArmed - wanted) sink.cancel(stale)
         for (planned in plan) sink.arm(planned)
+        // 1.1.4, A-2: the backstop follows the nearest alarm on Android 12 and 12L
+        // ([backstop], from FireRules.backstopWanted) and is cancelled everywhere else. Last, so
+        // it never stands in for an alarm the loop above has not armed yet. Fix round 1: a
+        // waiting snooze ([snoozes], armed by the caller) that comes first takes it instead, since
+        // revoking exact alarms cancels an exact snooze as well.
+        sink.guard(if (backstop) backstopTarget(plan, snoozes) else null)
         return wanted
+    }
+
+    /** The alarm the backstop stands in for: the earliest of the nearest alarm and the waiting snoozes (an alarm on a tie). */
+    fun backstopTarget(plan: List<PlannedAlarm>, snoozes: List<PlannedAlarm>): PlannedAlarm? {
+        val alarm = plan.minByOrNull { it.occurrence.fireAt }
+        val snooze = snoozes.minByOrNull { it.occurrence.fireAt }
+        return when {
+            snooze == null -> alarm
+            alarm == null -> snooze
+            snooze.occurrence.fireAt.isBefore(alarm.occurrence.fireAt) -> snooze
+            else -> alarm
+        }
+    }
+
+    /**
+     * Carries out a re-plan's sort of the stored snoozes ([FireRules.sortSnoozes], A-6) on [sink]:
+     * cancels the snooze alarm of every rule in [SnoozeSort.gone] and [SnoozeSort.late], then arms
+     * every snooze in [SnoozeSort.keep] again, a past instant included (it then rings at once).
+     * The notices that go with them are the caller's. Returns the snoozes still waiting.
+     */
+    fun applySnoozes(sort: SnoozeSort, sink: AlarmSink, zone: ZoneId): List<PendingSnooze> {
+        for (s in sort.gone + sort.late) sink.cancel(snoozeRequestCodeFor(s.ruleId))
+        for (s in sort.keep) sink.arm(snoozePlanned(s, zone))
+        return sort.keep
+    }
+
+    /**
+     * A snooze as an alarm to arm: a synthetic occurrence on the rule's odd sibling request code,
+     * so tomorrow's alarm for the same rule stays armed. It has no solar anchor, so anchorAt is
+     * the fire time itself and the two fallback flags are false.
+     */
+    fun snoozePlanned(snooze: PendingSnooze, zone: ZoneId): PlannedAlarm {
+        val at = Instant.ofEpochMilli(snooze.at)
+        return PlannedAlarm(
+            Occurrence(
+                ruleId = snooze.ruleId,
+                // atZone().toLocalDate() rather than LocalDate.ofInstant, which is a Java 9
+                // addition and therefore not something to bet a 06:00 alarm on under library
+                // desugaring on API 24.
+                anchorDate = at.atZone(zone).toLocalDate(),
+                anchorAt = at,
+                fireAt = at,
+                usedFallback = false,
+                clamped = false,
+            ),
+            snoozeRequestCodeFor(snooze.ruleId),
+        )
     }
 
     /** Convenience for the common caller: plan and apply in one step. */

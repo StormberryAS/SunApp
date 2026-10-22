@@ -56,8 +56,16 @@ android {
         // the full-screen intent of a notification it treats as silent, and the ringing one
         // was: by its own setSilent(true), and, after a snooze, by the system auto-grouping it
         // with the "snoozed" notice. A locked phone showed only a notification. See AlarmService.
-        versionCode = 5
-        versionName = "1.1.3"
+        //
+        // 1.1.4 (code 6), 2026-10-21: alarms that are harder to lose, ported from EclipseTracker's
+        // fix B: notifications off still rings and opening the app shows the ring screen (A-1);
+        // Android 12 with exact alarms off rings through a backup notification and a backstop,
+        // and the app re-arms on open (A-2); a pending snooze is stored, survives a restart and is
+        // cancelled with its rule (A-6); a second alarm reports the first as missed (A-5); a
+        // snooze that cannot be armed keeps the alarm ringing (A-7); a refused foreground rings
+        // through the backup (A-4). No new permission.
+        versionCode = 6
+        versionName = "1.1.4"
 
         // No instrumentation tests, no test runner, nothing that pulls in extra permissions.
         // Density-split PNGs are generated at build time from vectors and are a source of

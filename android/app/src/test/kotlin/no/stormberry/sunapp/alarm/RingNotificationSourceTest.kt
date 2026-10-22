@@ -51,19 +51,75 @@ class RingNotificationSourceTest {
     @Test
     fun theNoticeIsCancelledBeforeTheRingNotificationIsPosted() {
         val body = functionBody("onStartCommand")
-        val cancel = body.indexOf("cancelNotice(this)")
+        val cancel = body.indexOf("ringAlone(this)")
         val post = body.indexOf("startInForeground(buildRingNotification(")
-        assertTrue("onStartCommand cancels the notice", cancel >= 0)
+        assertTrue("onStartCommand cancels the notices", cancel >= 0)
         assertTrue("onStartCommand posts the ring notification", post >= 0)
-        assertTrue("the notice is cancelled first", cancel < post)
-        assertTrue(functionBody("cancelNotice").contains(".cancel(NOTIFICATION_ID_NOTICE)"))
+        assertTrue("the notices are cancelled first", cancel < post)
+        // Since 1.1.4 notices are tagged per rule, so every notice is cancelled, whatever its tag.
+        val alone = functionBody("ringAlone")
+        assertTrue(alone.contains("activeNotifications"))
+        assertTrue(alone.contains("it.id == NOTIFICATION_ID_NOTICE"))
+        assertTrue(alone.contains("manager.cancel(it.tag, it.id)"))
+    }
+
+    /**
+     * 1.1.4, A-2: the backup ring notification is the alarm when the service cannot ring, so it
+     * obeys the same two rules: it is not silent, and it is posted alone.
+     */
+    @Test
+    fun theBackupRingIsAudibleAndPostedAlone() {
+        val backup = functionBody("buildBackupNotification")
+        assertTrue("its own channel, with a sound", backup.contains("Builder(context, CHANNEL_RING_BACKUP)"))
+        assertTrue(backup.contains(".setFullScreenIntent(ring, true)"))
+        assertFalse(backup.contains(".setSilent("))
+        assertFalse(backup.contains(".setOnlyAlertOnce("))
+        assertTrue("repeats until answered", backup.contains("Notification.FLAG_INSISTENT"))
+        assertTrue(backup.contains(".setTimeoutAfter(AUTO_SILENCE_MS)"))
+        assertTrue(backup.contains(".setDeleteIntent(gone)"))
+
+        val channels = functionBody("ensureChannels")
+        val channel = channels.substringAfter("Builder(CHANNEL_RING_BACKUP,").substringBefore(".setShowBadge(")
+        assertTrue(channel.contains("IMPORTANCE_HIGH"))
+        assertTrue("the alarm sound", channel.contains("Settings.System.DEFAULT_ALARM_ALERT_URI"))
+        assertTrue("on the alarm stream", channel.contains("AudioAttributes.USAGE_ALARM"))
+        assertTrue(channel.contains(".setVibrationEnabled(true)"))
+        assertFalse(channel.contains(".setSound(null"))
+
+        val post = functionBody("postBackupRing")
+        assertTrue("posted alone", post.indexOf("ringAlone(context)") in 0 until post.indexOf("postPlain("))
+    }
+
+    /**
+     * 1.1.4, A-6: the snoozed notice gets Dismiss and is tagged per rule; it still carries no
+     * full-screen intent, which is what makes its setSilent safe.
+     */
+    @Test
+    fun theSnoozedNoticeHasDismissAndNoFullScreenIntent() {
+        val body = functionBody("postSnoozedNotice")
+        assertTrue(body.contains("Builder(context, CHANNEL_NOTICES)"))
+        assertFalse(body.contains(".setFullScreenIntent("))
+        assertTrue(body.contains(".addAction(0, \"Dismiss\", dismissPendingIntent(context, snooze.ruleId))"))
+        assertTrue(body.contains("tag = snooze.ruleId"))
+        val missed = functionBody("postMissed")
+        assertFalse(missed.contains(".setFullScreenIntent("))
+    }
+
+    /** A-4: a refused foreground falls back to the backup ring held in the foreground, never to stopping silently. */
+    @Test
+    fun aRefusedForegroundRingsThroughTheBackup() {
+        val body = functionBody("onStartCommand")
+        assertTrue(body.contains("ringBackupFromService(alarm)"))
+        assertFalse("1.1.3's plain fallback is gone", code.contains("postFallbackNotification"))
+        val backup = functionBody("ringBackupFromService")
+        assertTrue(backup.contains("ServiceCompat.startForeground(this, NOTIFICATION_ID_RING, backup"))
     }
 
     /** The general form of the rule, so a second full-screen notification cannot repeat it. */
     @Test
     fun noNotificationWithAFullScreenIntentIsSilent() {
         val chains = builderChains()
-        assertTrue("found the three notification builders", chains.size >= 3)
+        assertTrue("found the four notification builders", chains.size >= 4)
         for (chain in chains.filter { it.contains(".setFullScreenIntent(") }) {
             assertFalse("silent full-screen notification:\n$chain", chain.contains(".setSilent("))
         }

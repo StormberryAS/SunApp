@@ -2,6 +2,7 @@ package no.stormberry.sunapp.alarm
 
 import android.annotation.SuppressLint
 import android.app.Notification
+import android.app.NotificationManager
 import android.app.PendingIntent
 import android.app.Service
 import android.content.Context
@@ -28,6 +29,7 @@ import android.provider.Settings
 import android.text.format.DateFormat
 import android.util.Log
 import androidx.compose.runtime.State
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.core.app.NotificationChannelCompat
 import androidx.core.app.NotificationCompat
@@ -61,11 +63,27 @@ data class RingingAlarm(
     val isSnooze: Boolean,
     val ringtoneUri: String?,
     val vibrate: Boolean,
-)
+    /** When this ring began, which is what its ten-minute timeout counts from (1.1.4). */
+    val startedAtMillis: Long = fireAtMillis,
+) {
+    /** One ring of one alarm: a snooze of it rings with another [fireAtMillis]. */
+    val key: String get() = "${ruleId.orEmpty()}@$fireAtMillis"
+}
 
 /**
  * Plays the alarm: foreground service, alarm-stream audio, vibration, and the notification
  * that carries the full-screen intent.
+ *
+ * 1.1.4, ported from EclipseTracker's fix B:
+ *  - A-1: it rings even when notifications are off or the ring channel is turned down, when the
+ *    person sees nothing; the app's own screen then opens the ring screen while it rings
+ *    (MainActivity), so opening SunApp is always a way to stop it;
+ *  - A-2 and A-4: when the ringing cannot run here (Android refused the foreground, or the
+ *    receiver could not start this service at all), the backup ring notification rings instead:
+ *    the phone's alarm sound, repeated, on its own channel, with the ring screen as its
+ *    full-screen intent, Snooze and Dismiss, and gone after the ring timeout;
+ *  - A-5: a second alarm arriving while one rings releases the first one's wake lock and reports
+ *    the first one as missed, once nothing rings any more.
  *
  * A foreground service rather than a plain one because the ringing must survive the user
  * doing nothing at all for ten minutes on a device that wants to sleep, and because from
@@ -99,6 +117,9 @@ class AlarmService : Service() {
     private var wakeLock: PowerManager.WakeLock? = null
     private var volume = START_VOLUME
 
+    /** A-4: this service holds the backup ring notification in the foreground (no tone of its own). */
+    private var holdsBackup = false
+
     override fun onBind(intent: Intent?): IBinder? = null
 
     override fun onCreate() {
@@ -115,12 +136,21 @@ class AlarmService : Service() {
             return START_NOT_STICKY
         }
 
+        val alarm = alarmFrom(intent)
+
         // A second alarm can arrive while the first is still ringing (two rules, one minute
         // apart, or a snooze landing on a neighbouring rule). Tear the first one down rather
-        // than layering two MediaPlayers on the alarm stream.
+        // than layering two MediaPlayers on the alarm stream, let its wake lock go before the
+        // new one is taken (A-5: 1.1.3 overwrote it, so the first was held to its timeout), and
+        // report it as missed. Its notice waits until nothing rings: posted now, it would be
+        // grouped with this ring and silence it. What rings may be the backup ring notification
+        // rather than this service (fix round 1), so both are asked; and the notice is kept in
+        // storage, so it survives this process and is told by whichever path ends the ring.
+        val replaced = FireRules.replaced(AlarmService.current(), alarm)
         stopRinging()
-
-        val alarm = ringingAlarmFrom(intent)
+        releaseWakeLock()
+        if (replaced != null) AlarmScheduling.oweReplaced(this, replaced)
+        setBackup(null)
         current.value = alarm
 
         // The ring notification must be this app's only notification when it is posted. A
@@ -128,21 +158,33 @@ class AlarmService : Service() {
         // them, and an auto-grouped notification is marked silent by the system itself, which
         // suppresses the full-screen intent exactly as setSilent did (reproduced on an API 36
         // emulator, 16 October 2026: a snoozed alarm rang with no ring screen while its own
-        // "snoozed" notice was showing). A snoozed notice is out of date once anything rings;
-        // a missed notice is the cost, gone when the next alarm starts.
-        cancelNotice(this)
+        // "snoozed" notice was showing). The snoozed notices come back once nothing rings
+        // (repostNotices); a missed notice still showing is the cost.
+        ringAlone(this)
 
         if (!startInForeground(buildRingNotification(alarm))) {
-            // Without foreground status the service will be killed within seconds, so the
-            // best remaining move is to post the same notification as a plain one and let its
-            // full-screen intent and heads-up do the waking. Degraded, but not silent.
-            postFallbackNotification(alarm)
+            // A-4: without the foreground this service cannot play the tone, and 1.1.3 then
+            // stopped without ever entering the foreground, which crashes on Android 9 and later.
+            // The backup ring notification rings instead (the alarm sound, repeated, the ring
+            // screen, Snooze, Dismiss). When Android lets this service hold the backup in the
+            // foreground, it does, until Dismiss, Snooze or the ring timeout: that settles
+            // Android's demand that a service started with startForegroundService enter the
+            // foreground. It is not detached and left behind: on Android 16 that update counts as
+            // a second alert straight after the first and is muted (EclipseTracker, emulator, 16
+            // October 2026). Only if that fails too is it posted plainly.
+            Log.w(TAG, "ringing through the backup notification instead")
             current.value = null
             AlarmWakeLock.release()
-            stopSelf()
+            if (ringBackupFromService(alarm)) {
+                holdsBackup = true
+                handler.postDelayed({ autoSilence(alarm) }, AUTO_SILENCE_MS)
+            } else {
+                stopSelf()
+            }
             return START_NOT_STICKY
         }
 
+        holdsBackup = false
         acquireWakeLock()
         // The receiver's wake lock has done its job now that this service holds its own.
         AlarmWakeLock.release()
@@ -158,14 +200,21 @@ class AlarmService : Service() {
     override fun onDestroy() {
         stopRinging()
         current.value = null
+        if (holdsBackup) setBackup(null)
         releaseWakeLock()
         ServiceCompat.stopForeground(this, ServiceCompat.STOP_FOREGROUND_REMOVE)
+        // Unless the backup ring notification still rings (posted plainly when even it could not
+        // be held in the foreground, A-4), nothing rings any more: the alarms another alarm cut
+        // short are told as missed (A-5), and the notices the ring took away come back.
+        repostNotices(this)
         super.onDestroy()
     }
 
     // ---------------------------------------------------------------- foreground and notice
 
     private fun startInForeground(notification: Notification): Boolean = try {
+        // Debug builds only: lets the emulator test force the A-4 path (TestHooks; release has none).
+        if (TestHooks.failForeground(this)) throw IllegalStateException("test hook: the foreground is refused")
         ServiceCompat.startForeground(this, NOTIFICATION_ID_RING, notification, foregroundType())
         true
     } catch (e: RuntimeException) {
@@ -176,6 +225,24 @@ class AlarmService : Service() {
         false
     }
 
+    /**
+     * A-4: the backup ring notification, held in the foreground by this service if Android allows
+     * it (true), else posted plainly (false; the service then stops).
+     */
+    private fun ringBackupFromService(alarm: RingingAlarm): Boolean {
+        ensureChannels(this)
+        setBackup(alarm)
+        val backup = buildBackupNotification(this, alarm)
+        return try {
+            ServiceCompat.startForeground(this, NOTIFICATION_ID_RING, backup, foregroundType())
+            true
+        } catch (e: RuntimeException) {
+            Log.e(TAG, "could not enter the foreground with the backup either", e)
+            postPlain(this, NOTIFICATION_ID_RING, backup)
+            false
+        }
+    }
+
     private fun foregroundType(): Int =
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK
@@ -184,25 +251,7 @@ class AlarmService : Service() {
         }
 
     private fun buildRingNotification(alarm: RingingAlarm): Notification {
-        val ring = PendingIntent.getActivity(
-            this,
-            REQUEST_RING_SCREEN,
-            Intent(this, RingActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
-        )
-        val snooze = PendingIntent.getBroadcast(
-            this,
-            REQUEST_SNOOZE,
-            AlarmFireReceiver.snoozeIntent(this, alarm.ruleId, alarm.label),
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
-        )
-        val dismiss = PendingIntent.getBroadcast(
-            this,
-            REQUEST_DISMISS,
-            AlarmFireReceiver.dismissIntent(this, alarm.ruleId),
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
-        )
-
+        val ring = ringScreenIntent(this, alarm, backup = false)
         val summary = summaryFor(this, alarm)
         return NotificationCompat.Builder(this, CHANNEL_RING)
             .setSmallIcon(R.drawable.ic_app_logo)
@@ -225,19 +274,9 @@ class AlarmService : Service() {
             // defect EclipseTracker's port of this engine found as E-2).
             .setFullScreenIntent(ring, true)
             .setContentIntent(ring)
-            .addAction(0, "Snooze ${AlarmFireReceiver.SNOOZE_MINUTES} min", snooze)
-            .addAction(0, "Dismiss", dismiss)
+            .addAction(0, "Snooze ${AlarmFireReceiver.SNOOZE_MINUTES} min", snoozePendingIntent(this, alarm))
+            .addAction(0, "Dismiss", dismissPendingIntent(this, alarm.ruleId))
             .build()
-    }
-
-    @SuppressLint("MissingPermission")
-    private fun postFallbackNotification(alarm: RingingAlarm) {
-        try {
-            NotificationManagerCompat.from(this)
-                .notify(NOTIFICATION_ID_RING, buildRingNotification(alarm))
-        } catch (e: RuntimeException) {
-            Log.e(TAG, "could not post the fallback ring notification", e)
-        }
     }
 
     private fun autoSilence(alarm: RingingAlarm) {
@@ -513,20 +552,6 @@ class AlarmService : Service() {
         runCatching { track.release() }
     }
 
-    private fun ringingAlarmFrom(intent: Intent): RingingAlarm = RingingAlarm(
-        ruleId = intent.getStringExtra(AlarmFireReceiver.EXTRA_RULE_ID),
-        label = intent.getStringExtra(EXTRA_LABEL) ?: AlarmFireReceiver.DEFAULT_LABEL,
-        placeName = intent.getStringExtra(EXTRA_PLACE).orEmpty(),
-        anchorText = intent.getStringExtra(EXTRA_ANCHOR_TEXT).orEmpty(),
-        fireAtMillis = intent.getLongExtra(AlarmFireReceiver.EXTRA_FIRE_AT, 0L),
-        usedFallback = intent.getBooleanExtra(AlarmFireReceiver.EXTRA_USED_FALLBACK, false),
-        isSnooze = intent.getBooleanExtra(EXTRA_IS_SNOOZE, false),
-        ringtoneUri = intent.getStringExtra(EXTRA_RINGTONE),
-        // Defaults to true when the rule could not be read, matching AlarmRule's own default.
-        // A silent, still phone is the one outcome an alarm must never produce by accident.
-        vibrate = intent.getBooleanExtra(EXTRA_VIBRATE, true),
-    )
-
     companion object {
 
         private const val TAG = "SunAlarmService"
@@ -540,6 +565,7 @@ class AlarmService : Service() {
         private const val EXTRA_IS_SNOOZE = "no.stormberry.sunapp.extra.IS_SNOOZE"
         private const val EXTRA_RINGTONE = "no.stormberry.sunapp.extra.RINGTONE"
         private const val EXTRA_VIBRATE = "no.stormberry.sunapp.extra.VIBRATE"
+        private const val EXTRA_STARTED_AT = "no.stormberry.sunapp.extra.STARTED_AT"
 
         /**
          * The ringing alarm. Silent as a notification: the service plays the sound itself.
@@ -554,12 +580,20 @@ class AlarmService : Service() {
         /** Snoozed and auto-silenced alarms. Ordinary importance, no full-screen intent. */
         const val CHANNEL_NOTICES: String = "alarm_notices"
 
+        /**
+         * 1.1.4 (A-2, A-4): the backup ring notification's channel, with the phone's alarm sound
+         * of its own, for when this service cannot ring.
+         */
+        const val CHANNEL_RING_BACKUP: String = "alarm_ring_backup"
+
         private const val NOTIFICATION_ID_RING = 0x5A01
         private const val NOTIFICATION_ID_NOTICE = 0x5A02
 
         private const val REQUEST_RING_SCREEN = 0x5A10
         private const val REQUEST_SNOOZE = 0x5A11
         private const val REQUEST_DISMISS = 0x5A12
+        private const val REQUEST_RING_SCREEN_BACKUP = 0x5A13
+        private const val REQUEST_BACKUP_GONE = 0x5A14
 
         /**
          * How long an unanswered alarm rings before it gives up.
@@ -568,7 +602,7 @@ class AlarmService : Service() {
          * the user being asleep; the upper bound by a phone in a bag on a train, where an
          * alarm nobody can hear should eventually stop rather than flatten the battery.
          */
-        private const val AUTO_SILENCE_MS = 10L * 60L * 1000L
+        const val AUTO_SILENCE_MS: Long = 10L * 60L * 1000L
         private const val WAKE_LOCK_MARGIN_MS = 30L * 1000L
 
         private const val START_VOLUME = 0.12f
@@ -590,20 +624,38 @@ class AlarmService : Service() {
         private const val TONE_AMPLITUDE = 0.6
 
         /**
-         * Process-local state describing the alarm currently ringing, or null when nothing is.
+         * Process-local state describing the alarm this service is ringing, or null when it is
+         * ringing nothing.
          *
-         * A Compose `State` rather than a listener or a binder because the only consumer is
-         * [RingActivity], which lives in this same process and is written in Compose:
-         * recomposition on change is the whole mechanism, and the activity finishing itself
-         * when this goes null is how a snooze from the notification shade closes the screen.
+         * A Compose `State` rather than a listener or a binder because the consumers are
+         * [RingActivity] and MainActivity, which live in this same process and are written in
+         * Compose: recomposition on change is the whole mechanism, and the ring screen
+         * finishing itself when [ringing] goes null is how a snooze from the notification shade
+         * closes the screen.
          */
         private val current = mutableStateOf<RingingAlarm?>(null)
 
-        /** The alarm currently ringing, for the ring screen to render. */
-        val ringing: State<RingingAlarm?> get() = current
+        /** What the backup ring notification rings now (1.1.4, A-2, A-4), when this service could not. */
+        private val backup = mutableStateOf<RingingAlarm?>(null)
 
         /**
-         * Create both notification channels if they do not exist.
+         * The alarm ringing now, by this service or by the backup ring notification, for the
+         * ring screen to render and for MainActivity to open it (1.1.4, A-1). The backup's ring
+         * timeout is not part of this state; [current] applies it.
+         */
+        val ringing: State<RingingAlarm?> = derivedStateOf { current.value ?: backup.value }
+
+        /** What rings now, by this service or by the backup notification until its ring timeout, or null. */
+        fun current(now: Long = System.currentTimeMillis()): RingingAlarm? =
+            current.value ?: backup.value?.takeIf { now < it.startedAtMillis + AUTO_SILENCE_MS }
+
+        /** Sets (or clears) what the backup ring notification rings, for the ring screen. */
+        fun setBackup(alarm: RingingAlarm?) {
+            backup.value = alarm
+        }
+
+        /**
+         * Create the notification channels if they do not exist.
          *
          * Idempotent and cheap, and called from every entry point rather than once at
          * startup: a channel created before the process was last killed is still there, but a
@@ -634,87 +686,290 @@ class AlarmService : Service() {
                     .setShowBadge(false)
                     .build(),
             )
+            manager.createNotificationChannel(
+                NotificationChannelCompat
+                    .Builder(CHANNEL_RING_BACKUP, NotificationManagerCompat.IMPORTANCE_HIGH)
+                    .setName("Ringing alarms, backup")
+                    .setDescription(
+                        "Used when Android does not let SunApp ring in full: the phone's alarm " +
+                            "sound and the alarm on screen.",
+                    )
+                    .setSound(
+                        Settings.System.DEFAULT_ALARM_ALERT_URI,
+                        AudioAttributes.Builder()
+                            .setUsage(AudioAttributes.USAGE_ALARM)
+                            .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+                            .build(),
+                    )
+                    .setVibrationEnabled(true)
+                    .setVibrationPattern(VIBRATION_PATTERN)
+                    .setShowBadge(false)
+                    .build(),
+            )
         }
 
         /**
-         * The intent that starts a ring, with everything the service needs to describe the
-         * alarm without reading the rule store.
+         * The alarm to ring, with everything the service and the ring screen need to describe
+         * it without reading the rule store.
          *
-         * The rule is resolved by the caller and flattened into extras here, because the
-         * service can be started on a locked device where the rule is unreadable. Passing a
-         * rule id alone would mean a ring screen that says nothing but "Alarm".
+         * The rule is resolved by the caller and flattened here, because the service can be
+         * started on a locked device where the rule is unreadable. Passing a rule id alone
+         * would mean a ring screen that says nothing but "Alarm".
          */
-        fun ringIntent(
-            context: Context,
+        fun alarmFor(
             ruleId: String?,
             rule: AlarmRule?,
             fireAtMillis: Long,
             usedFallback: Boolean,
             isSnooze: Boolean,
-        ): Intent = Intent(context, AlarmService::class.java)
-            .setAction(ACTION_RING)
-            .putExtra(AlarmFireReceiver.EXTRA_RULE_ID, ruleId ?: rule?.id)
-            .putExtra(
-                EXTRA_LABEL,
-                rule?.label?.takeIf { it.isNotBlank() } ?: AlarmFireReceiver.DEFAULT_LABEL,
-            )
-            .putExtra(EXTRA_PLACE, rule?.placeName.orEmpty())
-            .putExtra(EXTRA_ANCHOR_TEXT, rule?.let { describeAnchor(it) }.orEmpty())
-            .putExtra(AlarmFireReceiver.EXTRA_FIRE_AT, fireAtMillis)
-            .putExtra(AlarmFireReceiver.EXTRA_USED_FALLBACK, usedFallback)
-            .putExtra(EXTRA_IS_SNOOZE, isSnooze)
-            .putExtra(EXTRA_RINGTONE, rule?.ringtoneUri)
-            .putExtra(EXTRA_VIBRATE, rule?.vibrate ?: true)
+            startedAtMillis: Long,
+        ): RingingAlarm = RingingAlarm(
+            ruleId = ruleId ?: rule?.id,
+            label = rule?.label?.takeIf { it.isNotBlank() } ?: AlarmFireReceiver.DEFAULT_LABEL,
+            placeName = rule?.placeName.orEmpty(),
+            anchorText = rule?.let { describeAnchor(it) }.orEmpty(),
+            fireAtMillis = fireAtMillis,
+            usedFallback = usedFallback,
+            isSnooze = isSnooze,
+            ringtoneUri = rule?.ringtoneUri,
+            // Defaults to true when the rule could not be read, matching AlarmRule's own
+            // default. A silent, still phone is the one outcome an alarm must never produce by
+            // accident.
+            vibrate = rule?.vibrate ?: true,
+            startedAtMillis = startedAtMillis,
+        )
 
-        /** Tell the user their alarm was snoozed and when it will come back. */
-        @SuppressLint("MissingPermission")
-        fun postSnoozedNotice(context: Context, label: String, untilMillis: Long) {
+        private fun putAlarm(intent: Intent, alarm: RingingAlarm): Intent = intent
+            .putExtra(AlarmFireReceiver.EXTRA_RULE_ID, alarm.ruleId)
+            .putExtra(EXTRA_LABEL, alarm.label)
+            .putExtra(EXTRA_PLACE, alarm.placeName)
+            .putExtra(EXTRA_ANCHOR_TEXT, alarm.anchorText)
+            .putExtra(AlarmFireReceiver.EXTRA_FIRE_AT, alarm.fireAtMillis)
+            .putExtra(AlarmFireReceiver.EXTRA_USED_FALLBACK, alarm.usedFallback)
+            .putExtra(EXTRA_IS_SNOOZE, alarm.isSnooze)
+            .putExtra(EXTRA_RINGTONE, alarm.ringtoneUri)
+            .putExtra(EXTRA_VIBRATE, alarm.vibrate)
+            .putExtra(EXTRA_STARTED_AT, alarm.startedAtMillis)
+
+        /** The alarm a ring intent, a backup ring screen intent or a backup-gone intent carries. */
+        fun alarmFrom(intent: Intent): RingingAlarm {
+            val fireAt = intent.getLongExtra(AlarmFireReceiver.EXTRA_FIRE_AT, 0L)
+                .takeIf { it > 0L } ?: System.currentTimeMillis()
+            return RingingAlarm(
+                ruleId = intent.getStringExtra(AlarmFireReceiver.EXTRA_RULE_ID),
+                label = intent.getStringExtra(EXTRA_LABEL) ?: AlarmFireReceiver.DEFAULT_LABEL,
+                placeName = intent.getStringExtra(EXTRA_PLACE).orEmpty(),
+                anchorText = intent.getStringExtra(EXTRA_ANCHOR_TEXT).orEmpty(),
+                fireAtMillis = fireAt,
+                usedFallback = intent.getBooleanExtra(AlarmFireReceiver.EXTRA_USED_FALLBACK, false),
+                isSnooze = intent.getBooleanExtra(EXTRA_IS_SNOOZE, false),
+                ringtoneUri = intent.getStringExtra(EXTRA_RINGTONE),
+                vibrate = intent.getBooleanExtra(EXTRA_VIBRATE, true),
+                startedAtMillis = intent.getLongExtra(EXTRA_STARTED_AT, 0L).takeIf { it > 0L } ?: fireAt,
+            )
+        }
+
+        /** The intent that starts a ring. */
+        fun ringIntent(context: Context, alarm: RingingAlarm): Intent =
+            putAlarm(Intent(context, AlarmService::class.java).setAction(ACTION_RING), alarm)
+
+        /**
+         * The ring screen. For the backup ring it carries the alarm, because the process that
+         * shows the screen may not be the one that posted the notification.
+         */
+        fun ringScreenIntent(context: Context, alarm: RingingAlarm, backup: Boolean): PendingIntent {
+            val intent = Intent(context, RingActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            if (backup) putAlarm(intent, alarm).putExtra(RingActivity.EXTRA_BACKUP, true)
+            return PendingIntent.getActivity(
+                context,
+                if (backup) REQUEST_RING_SCREEN_BACKUP else REQUEST_RING_SCREEN,
+                intent,
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+            )
+        }
+
+        private fun snoozePendingIntent(context: Context, alarm: RingingAlarm): PendingIntent =
+            PendingIntent.getBroadcast(
+                context,
+                REQUEST_SNOOZE,
+                AlarmFireReceiver.snoozeIntent(context, alarm.ruleId, alarm.label),
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+            )
+
+        /** Dismiss for [ruleId]; its data address is per rule, so each snoozed notice keeps its own. */
+        private fun dismissPendingIntent(context: Context, ruleId: String?): PendingIntent =
+            PendingIntent.getBroadcast(
+                context,
+                REQUEST_DISMISS,
+                AlarmFireReceiver.dismissIntent(context, ruleId),
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+            )
+
+        /**
+         * The backup ring notification (1.1.4, A-2 and A-4): what rings when this service cannot.
+         * The phone's alarm sound from its own channel, repeated until answered (insistent), the
+         * ring screen as its full-screen intent, Snooze and Dismiss, and gone after the ring
+         * timeout. Swiping it away, or its timeout, tells the receiver (ACTION_BACKUP_GONE),
+         * which then says when it was missed. Not silent: it is the alarm.
+         */
+        fun buildBackupNotification(context: Context, alarm: RingingAlarm): Notification {
+            val ring = ringScreenIntent(context, alarm, backup = true)
+            val gone = PendingIntent.getBroadcast(
+                context,
+                REQUEST_BACKUP_GONE,
+                putAlarm(AlarmFireReceiver.backupGoneIntent(context, alarm.ruleId), alarm),
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+            )
+            val summary = summaryFor(context, alarm)
+            val builder = NotificationCompat.Builder(context, CHANNEL_RING_BACKUP)
+                .setSmallIcon(R.drawable.ic_app_logo)
+                .setContentTitle(alarm.label)
+                .setContentText(summary)
+                .setStyle(NotificationCompat.BigTextStyle().bigText(summary))
+                .setCategory(NotificationCompat.CATEGORY_ALARM)
+                .setPriority(NotificationCompat.PRIORITY_MAX)
+                .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+                .setAutoCancel(false)
+                .setFullScreenIntent(ring, true)
+                .setContentIntent(ring)
+                .setDeleteIntent(gone)
+                .addAction(0, "Snooze ${AlarmFireReceiver.SNOOZE_MINUTES} min", snoozePendingIntent(context, alarm))
+                .addAction(0, "Dismiss", dismissPendingIntent(context, alarm.ruleId))
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
+                // No channels before Android 8: the sound and the vibration go on the notification.
+                @Suppress("DEPRECATION")
+                builder.setSound(Settings.System.DEFAULT_ALARM_ALERT_URI, AudioManager.STREAM_ALARM)
+                    .setVibrate(VIBRATION_PATTERN)
+            } else {
+                builder.setTimeoutAfter(AUTO_SILENCE_MS)
+            }
+            val notification = builder.build()
+            // The channel's sound plays once per alert; insistent repeats it until answered.
+            notification.flags = notification.flags or Notification.FLAG_INSISTENT
+            return notification
+        }
+
+        /** Ring through the backup notification (1.1.4, A-2): the receiver could not start this service. */
+        fun postBackupRing(context: Context, alarm: RingingAlarm) {
+            ensureChannels(context)
+            // A-5 for the backup (fix round 1): a different alarm still ringing through the
+            // backup is replaced in place, and is reported as missed once nothing rings.
+            if (current.value == null) FireRules.replaced(current(), alarm)?.let { AlarmScheduling.oweReplaced(context, it) }
+            setBackup(alarm)
+            ringAlone(context)
+            postPlain(context, NOTIFICATION_ID_RING, buildBackupNotification(context, alarm))
+        }
+
+        /**
+         * The 1.1.3 rule: a ring notification must be the app's only notification when it is
+         * posted. A snoozed or missed notice still showing makes two, Android 16 then groups them
+         * itself and marks the ringing one silent, which suppresses its full-screen intent just
+         * as setSilent did: a locked phone shows no ring screen. So every notice goes before a
+         * ring is posted, whatever rule it belongs to (since 1.1.4 notices are tagged per rule);
+         * the snoozed ones come back when nothing rings any more ([repostNotices]).
+         */
+        fun ringAlone(context: Context) {
+            runCatching {
+                val manager = context.getSystemService(NotificationManager::class.java) ?: return
+                manager.activeNotifications
+                    .filter { it.id == NOTIFICATION_ID_NOTICE }
+                    .forEach { manager.cancel(it.tag, it.id) }
+            }.onFailure { Log.w(TAG, "could not clear the notices before ringing", it) }
+        }
+
+        /**
+         * The notices of the snoozes still waiting, posted again once nothing rings, and the
+         * Missed notices owed meanwhile (1.1.4).
+         */
+        fun repostNotices(context: Context) {
+            // Nothing comes back while anything still rings (fix round 1): a notice posted then
+            // would be grouped with the ring notification and silence it. Whatever ends that
+            // ring calls this again.
+            if (current() != null) return
+            runCatching { AlarmScheduling.snoozes(context).forEach { postSnoozedNotice(context, it) } }
+                .onFailure { Log.w(TAG, "could not post the snoozed notices again", it) }
+            AlarmScheduling.tellOwed(context)
+        }
+
+        /** Takes the ring notification away (the backup's, or a stale one); the service's own goes with the service. */
+        fun cancelRingNotification(context: Context) {
+            runCatching { NotificationManagerCompat.from(context).cancel(NOTIFICATION_ID_RING) }
+        }
+
+        /**
+         * Tell the user their alarm was snoozed and when it will come back, with Dismiss, which
+         * cancels the snooze (1.1.4, A-6). One notice per rule, tagged with its id, so one
+         * rule's notice no longer replaces another's and each snooze can be dismissed.
+         */
+        fun postSnoozedNotice(context: Context, snooze: PendingSnooze) {
             ensureChannels(context)
             val notice = NotificationCompat.Builder(context, CHANNEL_NOTICES)
                 .setSmallIcon(R.drawable.ic_app_logo)
-                .setContentTitle("$label snoozed")
-                .setContentText("Ringing again at ${formatTime(context, untilMillis)}.")
+                .setContentTitle("${snooze.label} snoozed")
+                .setContentText("Ringing again at ${formatTime(context, snooze.at)}.")
                 .setCategory(NotificationCompat.CATEGORY_ALARM)
                 .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
                 .setAutoCancel(true)
                 // Silent on purpose and safe here: it carries no full-screen intent, and a
                 // snooze is something the user just did, so it should not chime at them.
                 .setSilent(true)
+                .addAction(0, "Dismiss", dismissPendingIntent(context, snooze.ruleId))
                 .build()
-            runCatching { NotificationManagerCompat.from(context).notify(NOTIFICATION_ID_NOTICE, notice) }
+            postPlain(context, NOTIFICATION_ID_NOTICE, notice, tag = snooze.ruleId)
         }
 
-        /** Removes the snoozed or missed notice, if one is showing. */
-        private fun cancelNotice(context: Context) {
-            runCatching { NotificationManagerCompat.from(context).cancel(NOTIFICATION_ID_NOTICE) }
+        /** Removes the snoozed or missed notice of one rule, if one is showing. */
+        fun cancelNotice(context: Context, ruleId: String?) {
+            runCatching { NotificationManagerCompat.from(context).cancel(ruleId, NOTIFICATION_ID_NOTICE) }
         }
 
         /**
-         * Tell the user an alarm rang and nobody answered.
+         * Tell the user an alarm rang and nobody answered: for ten minutes ([replaced] false),
+         * or until the next alarm began (true, A-5).
          *
          * An alarm that stops on its own and leaves no trace is indistinguishable from an
          * alarm that never rang, and the two need very different responses from the user.
          */
-        @SuppressLint("MissingPermission")
-        private fun postMissedNotice(context: Context, alarm: RingingAlarm) {
-            ensureChannels(context)
+        fun postMissedNotice(context: Context, alarm: RingingAlarm, replaced: Boolean = false) {
+            if (replaced) return postReplacedNotice(context, alarm.ruleId, alarm.label, alarm.fireAtMillis)
             val minutes = AUTO_SILENCE_MS / 60_000
+            postMissed(context, alarm.ruleId, alarm.label, "Rang at ${formatTime(context, alarm.fireAtMillis)} for $minutes minutes with no response.")
+        }
+
+        /** Tell the user the alarm of [ruleId] that rang at [at] had no answer until the next alarm began (A-5). */
+        fun postReplacedNotice(context: Context, ruleId: String?, label: String, at: Long) {
+            postMissed(context, ruleId, label, "Rang at ${formatTime(context, at)} with no answer until the next alarm began.")
+        }
+
+        /**
+         * Tell the user a snooze came due while the phone could not ring it, and was dropped
+         * rather than rung late (decision D-5).
+         */
+        fun postNotRungNotice(context: Context, ruleId: String?, label: String) {
+            postMissed(context, ruleId, label, "The phone could not ring this alarm on time.")
+        }
+
+        private fun postMissed(context: Context, ruleId: String?, label: String, text: String) {
+            ensureChannels(context)
             val notice = NotificationCompat.Builder(context, CHANNEL_NOTICES)
                 .setSmallIcon(R.drawable.ic_app_logo)
-                .setContentTitle("Missed ${alarm.label}")
-                .setContentText(
-                    "Rang at ${formatTime(context, alarm.fireAtMillis)} for $minutes minutes " +
-                        "with no response.",
-                )
+                .setContentTitle("Missed $label")
+                .setContentText(text)
                 .setCategory(NotificationCompat.CATEGORY_ALARM)
                 .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
                 .setAutoCancel(true)
-                // Silent on purpose and safe here: it carries no full-screen intent, and the
-                // alarm has just rung for ten minutes, so this is a record of that, not a
-                // second alarm.
+                // Silent on purpose and safe here: it carries no full-screen intent, and it is a
+                // record of an alarm, not a second alarm.
                 .setSilent(true)
                 .build()
-            runCatching { NotificationManagerCompat.from(context).notify(NOTIFICATION_ID_NOTICE, notice) }
+            postPlain(context, NOTIFICATION_ID_NOTICE, notice, tag = ruleId)
+        }
+
+        /** Posts a notification; nothing happens when notifications are off (the alarm list says so). */
+        @SuppressLint("MissingPermission")
+        private fun postPlain(context: Context, id: Int, notification: Notification, tag: String? = null) {
+            runCatching { NotificationManagerCompat.from(context).notify(tag, id, notification) }
+                .onFailure { Log.w(TAG, "could not post a notification", it) }
         }
 
         /**

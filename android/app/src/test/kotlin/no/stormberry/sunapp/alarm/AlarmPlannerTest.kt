@@ -3,6 +3,7 @@ package no.stormberry.sunapp.alarm
 import no.stormberry.sunapp.alarm.model.Direction
 import no.stormberry.sunapp.solar.SolarEvent
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
@@ -103,9 +104,14 @@ class AlarmPlannerTest {
             when (it) {
                 is FakeAlarmSink.Call.Arm -> "arm:${it.planned.requestCode}"
                 is FakeAlarmSink.Call.Cancel -> "cancel:${it.requestCode}"
+                // 1.1.4, A-2: apply ends with the backstop request, here "none" (no backstop asked).
+                is FakeAlarmSink.Call.Guard -> "guard:${it.next?.requestCode}"
             }
         }
-        assertEquals(listOf("cancel:$stale", "arm:${AlarmPlanner.requestCodeFor("kept")}"), shape)
+        assertEquals(
+            listOf("cancel:$stale", "arm:${AlarmPlanner.requestCodeFor("kept")}", "guard:null"),
+            shape,
+        )
     }
 
     /** A rule still in the plan is not cancelled on the way past, or the replacement would be
@@ -268,4 +274,211 @@ class AlarmPlannerTest {
         assertTrue(snoozes.all { it % 2 == 1 })
         assertTrue((bases.toSet() intersect snoozes.toSet()).isEmpty())
     }
+
+    // ------------------------------------------------------------------- 1.1.4 additions
+
+    /**
+     * A-2: the backstop follows the nearest alarm only, and only when asked for, which
+     * AlarmScheduling does on Android 12 and 12L alone (FireRules.backstopWanted).
+     */
+    @Test
+    fun theBackstopIsRequestedForTheNearestAlarmOnlyOnAndroid12() {
+        val sunrise = testRule(id = "sunrise", anchor = SolarEvent.SUNRISE)
+        val sunset = testRule(id = "sunset", anchor = SolarEvent.SUNSET)
+        val plan = AlarmPlanner.plan(listOf(sunset, sunrise), midsummerEve)
+
+        for (sdk in listOf(24, 30, 31, 32, 33, 34, 36)) {
+            val sink = FakeAlarmSink()
+            AlarmPlanner.apply(plan, sink, backstop = FireRules.backstopWanted(sdk))
+            assertEquals("API $sdk asks exactly once", 1, sink.guards.size)
+            val guarded = sink.guards.single()
+            if (sdk == 31 || sdk == 32) {
+                assertEquals("API $sdk guards the nearest", plan.first(), guarded)
+                assertEquals("sunrise", guarded?.occurrence?.ruleId)
+            } else {
+                assertNull("API $sdk cancels any backstop", guarded)
+            }
+            // The backstop comes after every arm, so it never stands in for an unarmed alarm.
+            assertTrue(sink.calls.last() is FakeAlarmSink.Call.Guard)
+        }
+    }
+
+    @Test
+    fun noRulesMeansTheBackstopIsCancelled() {
+        val sink = FakeAlarmSink()
+        AlarmPlanner.apply(emptyList(), sink, backstop = true)
+        assertEquals(listOf<PlannedAlarm?>(null), sink.guards)
+    }
+
+    /**
+     * The last-rung guard: an occurrence that has rung is never armed again, which is what
+     * stops the backstop, a backwards clock correction, or an arrival under two seconds early
+     * from ringing it twice (NOTES "A-8 related").
+     */
+    @Test
+    fun anOccurrenceThatHasRungIsNotArmedAgain() {
+        val sunrise = testRule(id = "sunrise", anchor = SolarEvent.SUNRISE)
+        val first = AlarmPlanner.plan(listOf(sunrise), midsummerEve).single().occurrence.fireAt
+
+        // The alarm arrived one second early, or the clock was set back by an hour after it rang.
+        for (now in listOf(first.minusSeconds(1), first.minusSeconds(3600))) {
+            val replanned = AlarmPlanner.plan(
+                listOf(sunrise),
+                now,
+                mapOf("sunrise" to first.toEpochMilli()),
+            ).single().occurrence.fireAt
+            assertTrue("re-armed after $now: $replanned", replanned.isAfter(first))
+            assertEquals(LocalDate.of(2026, 6, 22), replanned.atZone(OSLO).toLocalDate())
+        }
+
+        // Without the record the same re-plan arms the occurrence that rang: the 1.1.3 defect.
+        val withoutRecord = AlarmPlanner.plan(listOf(sunrise), first.minusSeconds(1)).single()
+        assertEquals(first, withoutRecord.occurrence.fireAt)
+    }
+
+    /** Another rule's last ring changes nothing for this one, and an older ring does not hold it back. */
+    @Test
+    fun theLastRungRecordIsPerRuleAndOnlyEverPushesForward() {
+        val sunrise = testRule(id = "sunrise", anchor = SolarEvent.SUNRISE)
+        val now = midsummerEve.instant()
+        val expected = AlarmPlanner.plan(listOf(sunrise), now).single().occurrence.fireAt
+
+        val otherRule = AlarmPlanner.plan(listOf(sunrise), now, mapOf("other" to expected.toEpochMilli())).single()
+        val olderRing = AlarmPlanner.plan(listOf(sunrise), now, mapOf("sunrise" to now.minusSeconds(86_400).toEpochMilli())).single()
+
+        assertEquals(expected, otherRule.occurrence.fireAt)
+        assertEquals(expected, olderRing.occurrence.fireAt)
+    }
+    /**
+     * Fix round 1 (verify 0, Android S-1, reproduced on the API 36 emulator): the clock jumps two
+     * hours forward past an alarm, which rings at once and late; the clock is then set back. The
+     * late ring is not recorded, so the re-plan arms the real occurrence again. In the build that
+     * verify 0 checked it was recorded, the real occurrence was skipped and nothing rang.
+     */
+    @Test
+    fun aRingAfterAForwardClockJumpDoesNotUseUpTheRealOccurrence() {
+        val sunrise = testRule(id = "sunrise", anchor = SolarEvent.SUNRISE)
+        val t1 = AlarmPlanner.plan(listOf(sunrise), midsummerEve).single().occurrence.fireAt
+
+        // The clock jumps two hours forward; the alarm arrives two hours late by the clock.
+        val arrival = t1.plusSeconds(2 * 3600)
+        assertEquals(FireDecision.Ring, FireRules.decide(t1.toEpochMilli(), arrival.toEpochMilli(), null))
+        for (inexact in listOf(false, true)) {
+            assertFalse(FireRules.shouldRecordRing(t1.toEpochMilli(), arrival.toEpochMilli(), inexact))
+        }
+
+        // Not recorded, so after the clock is set back the real occurrence is armed again.
+        val afterSetBack = AlarmPlanner.plan(listOf(sunrise), t1.minusSeconds(29 * 60), emptyMap()).single()
+        assertEquals(t1, afterSetBack.occurrence.fireAt)
+    }
+
+    /** An on-time ring and then a small backwards correction (3 minutes): the occurrence is not armed twice. */
+    @Test
+    fun anOnTimeRingAndASmallSetBackDoNotRingTwice() {
+        val sunrise = testRule(id = "sunrise", anchor = SolarEvent.SUNRISE)
+        val t1 = AlarmPlanner.plan(listOf(sunrise), midsummerEve).single().occurrence.fireAt
+        assertTrue(FireRules.shouldRecordRing(t1.toEpochMilli(), t1.toEpochMilli() + 500L, inexact = false))
+        val record = FireRules.recordRung(emptyMap(), "sunrise", t1.toEpochMilli())
+
+        val now = t1.minusSeconds(3 * 60)
+        val pruned = FireRules.pruneRung(record, now.toEpochMilli())
+        assertEquals(record, pruned)
+        val replanned = AlarmPlanner.plan(listOf(sunrise), now, pruned).single().occurrence.fireAt
+        assertTrue(replanned.isAfter(t1))
+    }
+
+    /**
+     * An on-time ring and then a large backwards set (two hours, code review C-1): nobody can tell
+     * which was wrong, so the record is pruned and the occurrence rings again, as in 1.1.3, and
+     * when it arrives it is not taken for one that has rung.
+     */
+    @Test
+    fun anOnTimeRingAndALargeSetBackRingAgain() {
+        val sunrise = testRule(id = "sunrise", anchor = SolarEvent.SUNRISE)
+        val t1 = AlarmPlanner.plan(listOf(sunrise), midsummerEve).single().occurrence.fireAt
+        val record = FireRules.recordRung(emptyMap(), "sunrise", t1.toEpochMilli())
+
+        val now = t1.minusSeconds(2 * 3600)
+        val pruned = FireRules.pruneRung(record, now.toEpochMilli())
+        assertTrue(pruned.isEmpty())
+        assertEquals(t1, AlarmPlanner.plan(listOf(sunrise), now, pruned).single().occurrence.fireAt)
+        assertEquals(FireDecision.Ring, FireRules.decide(t1.toEpochMilli(), t1.toEpochMilli(), pruned["sunrise"]))
+    }
+
+    /**
+     * Fix round 1 (verify 0, Android C-1): on Android 12 and 12L the backstop stands in for a
+     * waiting snooze when it comes before the nearest alarm, and for the alarm otherwise.
+     */
+    @Test
+    fun theBackstopStandsInForASnoozeThatComesFirst() {
+        val sunrise = testRule(id = "sunrise", anchor = SolarEvent.SUNRISE)
+        val plan = AlarmPlanner.plan(listOf(sunrise), midsummerEve)
+        val alarmAt = plan.single().occurrence.fireAt
+        val sooner = snooze("sunset", alarmAt.minusSeconds(60))
+        val later = snooze("sunset", alarmAt.plusSeconds(60))
+
+        val sink = FakeAlarmSink()
+        AlarmPlanner.apply(plan, sink, backstop = true, snoozes = listOf(later, sooner))
+        assertEquals(listOf<PlannedAlarm?>(sooner), sink.guards)
+
+        val sink2 = FakeAlarmSink()
+        AlarmPlanner.apply(plan, sink2, backstop = true, snoozes = listOf(later))
+        assertEquals(listOf<PlannedAlarm?>(plan.single()), sink2.guards)
+
+        val sink3 = FakeAlarmSink()
+        AlarmPlanner.apply(emptyList(), sink3, backstop = true, snoozes = listOf(later))
+        assertEquals(listOf<PlannedAlarm?>(later), sink3.guards)
+
+        // Elsewhere the backstop is cancelled, snoozes or not.
+        val sink4 = FakeAlarmSink()
+        AlarmPlanner.apply(plan, sink4, backstop = false, snoozes = listOf(sooner))
+        assertEquals(listOf<PlannedAlarm?>(null), sink4.guards)
+        // A snooze is armed by the caller, never by apply.
+        assertEquals(plan, sink.armed)
+    }
+
+    /**
+     * Fix round 2 (verify 1, code review S-1), at the level of what reaches AlarmManager: a
+     * re-plan that is not after a restart keeps a stored snooze eleven minutes overdue and arms
+     * it again, for its own past instant, on the rule's snooze code (so it rings at once). The
+     * re-plan after a restart cancels it instead, and a deleted rule's snooze is cancelled by both.
+     */
+    @Test
+    fun aReplanNotAfterARestartReArmsAnOverdueSnooze() {
+        val now = midsummerEve.instant().toEpochMilli()
+        val overdue = PendingSnooze("sunrise", now - 11 * 60_000L, "Sunrise")
+        val deleted = PendingSnooze("deleted", now + 60_000L, "Deleted")
+        val live = setOf("sunrise")
+
+        val sink = FakeAlarmSink()
+        val waiting = AlarmPlanner.applySnoozes(FireRules.sortSnoozes(listOf(overdue, deleted), live, now, dropLate = false), sink, OSLO)
+        assertEquals(listOf(overdue), waiting)
+        assertEquals(listOf(AlarmPlanner.snoozePlanned(overdue, OSLO)), sink.armed)
+        assertEquals(Instant.ofEpochMilli(overdue.at), sink.armed.single().occurrence.fireAt)
+        assertEquals(AlarmPlanner.snoozeRequestCodeFor("sunrise"), sink.armed.single().requestCode)
+        assertEquals(listOf(AlarmPlanner.snoozeRequestCodeFor("deleted")), sink.cancelled)
+        // Cancels come before arms, as in apply.
+        assertTrue(sink.calls.first() is FakeAlarmSink.Call.Cancel)
+
+        val afterRestart = FakeAlarmSink()
+        val left = AlarmPlanner.applySnoozes(FireRules.sortSnoozes(listOf(overdue, deleted), live, now, dropLate = true), afterRestart, OSLO)
+        assertEquals(emptyList<PendingSnooze>(), left)
+        assertEquals(emptyList<PlannedAlarm>(), afterRestart.armed)
+        assertEquals(
+            setOf(AlarmPlanner.snoozeRequestCodeFor("sunrise"), AlarmPlanner.snoozeRequestCodeFor("deleted")),
+            afterRestart.cancelled.toSet(),
+        )
+    }
+
+    private fun snooze(ruleId: String, at: Instant) = PlannedAlarm(
+        no.stormberry.sunapp.alarm.model.Occurrence(
+            ruleId = ruleId,
+            anchorDate = at.atZone(OSLO).toLocalDate(),
+            anchorAt = at,
+            fireAt = at,
+            usedFallback = false,
+            clamped = false,
+        ),
+        AlarmPlanner.snoozeRequestCodeFor(ruleId),
+    )
 }

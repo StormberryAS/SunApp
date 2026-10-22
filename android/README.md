@@ -66,8 +66,8 @@ What is genuinely deferred is every grant you can see or refuse:
 - **On Android 7 through 11 nothing is ever requested at all**, because none of
   these grants exist on those versions.
 - Refusing does not cost you the alarm. The rule is saved and armed anyway, and
-  the alarm row states exactly what is degraded, for example "approximate, may
-  be several minutes late".
+  the alarm list states exactly what is degraded, for example "it may ring late
+  or not at all" when exact alarms are switched off.
 
 ### The nine, one sentence each
 
@@ -75,7 +75,7 @@ What is genuinely deferred is every grant you can see or refuse:
 |---|---|
 | `USE_EXACT_ALARM` | Fires the alarm at the minute you set on Android 13 and later, granted at install because an alarm clock is this app's primary function. |
 | `SCHEDULE_EXACT_ALARM` | The same capability on Android 12 and 12L, where `USE_EXACT_ALARM` does not exist yet; capped at `maxSdkVersion="32"` so no newer device is ever asked for it. |
-| `POST_NOTIFICATIONS` | The alarm rings through a notification, so on Android 13 and later this is what makes ringing possible at all; it is the only runtime dialog in the app. |
+| `POST_NOTIFICATIONS` | The alarm shows through a notification: on Android 13 and later this is what puts the alarm, with Snooze and Dismiss, on the screen and over the lock screen. Without it an alarm still sounds, and opening SunApp shows the alarm screen to stop it. It is the only runtime dialog in the app. |
 | `RECEIVE_BOOT_COMPLETED` | A reboot erases every pending alarm, so they are recomputed and re-armed when the device comes back, including before the first unlock. |
 | `WAKE_LOCK` | Keeps the CPU awake for the few seconds between the alarm broadcast landing and the ringing service taking over, so a dozing device cannot sleep through it. |
 | `VIBRATE` | Vibrates while ringing; per alarm, and switchable off. |
@@ -101,6 +101,42 @@ The full list, with the same one-sentence justifications, is a comment block at
 the top of `app/src/main/AndroidManifest.xml`. `expected-permissions.txt` is the
 machine-readable copy that CI diffs the built APK against; see
 [Permissions are diffed, not trusted](#permissions-are-diffed-not-trusted).
+
+## When Android gets in the way of an alarm
+
+Since 1.1.4 (ported from EclipseTracker's fix B) an alarm is harder to lose:
+
+- **Notifications off, or the "Ringing alarms" or "Ringing alarms, backup"
+  channel blocked or turned below High.** The alarm still sounds and vibrates,
+  but Android may show nothing to stop it with. Opening SunApp then shows the
+  alarm screen with Snooze and Dismiss, and the alarm list says so in its red
+  banner, whose button opens the right setting (the channel's own page when
+  only one channel is turned down) outside SunApp, so that setting never stands
+  between you and a ringing alarm. It still stops by itself after ten minutes.
+  On Android 12 with exact alarms also switched off, the alarm cannot sound
+  until notifications are on again.
+- **Android 12 and 12L with exact alarms switched off.** Switching them off
+  cancels every exact alarm with no notice to the app. SunApp keeps an inexact
+  backstop of the nearest alarm or snooze, which survives that, and sets every alarm again
+  whenever it is opened. An inexact alarm may come late, and Android may refuse
+  to let it start the ringing service, so it then rings through a backup
+  notification on its own channel ("Ringing alarms, backup"): the phone's
+  alarm sound, repeated, the alarm screen, Snooze and Dismiss. The alarm list
+  says it "may ring late or not at all".
+- **Snoozes.** A snooze is remembered on the device, so it survives a restart
+  (it rings when the phone comes back, if that is at most ten minutes late, and
+  otherwise leaves a "Missed" notice), and its snoozed notice comes back with
+  it. A snooze that Android merely delivers late, as it may with exact alarms
+  off, still rings, and so does one waiting through an app update, whose snoozed
+  notice also comes back after the update. Deleting or switching off
+  an alarm also cancels its snooze, and the snoozed notice has its own Dismiss.
+- **Clock changes.** An alarm that has rung is not rung again when the clock is
+  corrected back by up to an hour. If it rang because the clock had jumped
+  forward past it, or the clock is set back by more than an hour, it rings again
+  at its real time rather than being skipped.
+- **One alarm at a time.** When a second alarm starts while one rings, the
+  first is reported as missed once nothing rings, and a snooze that cannot be
+  set leaves the alarm ringing rather than going quiet.
 
 ## Releases
 

@@ -3,6 +3,7 @@ package no.stormberry.sunapp.ui
 import no.stormberry.sunapp.alarm.AlarmCapabilityGap
 import no.stormberry.sunapp.alarm.model.Occurrence
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Test
 import java.time.Instant
@@ -89,7 +90,7 @@ class AlarmsScreenTest {
 
     @Test
     fun `a degradation still gets said out loud`() {
-        // "Your alarm may be several minutes late" is worth a banner even though the alarm
+        // "It may ring late or not at all" is worth a banner even though the alarm usually
         // does still ring, which is why this is not filtered down to blocking gaps only.
         assertEquals(
             AlarmCapabilityGap.EXACT_ALARMS,
@@ -113,5 +114,21 @@ class AlarmsScreenTest {
         val later = occurrence(Instant.parse("2026-08-21T19:20:00Z"))
         val next = listOf(later, soon).minByOrNull { it.fireAt }
         assertEquals(soon, next)
+    }
+
+    /**
+     * 1.1.4: opened from the warning banner, the permission sheet no longer claims that the first
+     * alarm is being created. Neither sentence carries a dash or a double hyphen.
+     */
+    @Test
+    fun `the permission sheet says why it is showing`() {
+        assertEquals(
+            "You are seeing this because you are creating your first alarm, and for no other reason.",
+            permissionSheetReason(firstAlarm = true),
+        )
+        assertEquals("SunApp needs this to ring your alarms reliably.", permissionSheetReason(firstAlarm = false))
+        for (text in listOf(permissionSheetReason(true), permissionSheetReason(false))) {
+            assertFalse(text.contains('\u2014') || text.contains('\u2013') || text.contains("--"))
+        }
     }
 }

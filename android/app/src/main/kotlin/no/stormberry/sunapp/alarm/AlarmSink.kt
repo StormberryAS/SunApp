@@ -38,4 +38,15 @@ interface AlarmSink {
      * was never armed must be a no-op, not an error.
      */
     fun cancel(requestCode: Int)
+
+    /**
+     * The backstop for the nearest alarm, or none when [next] is null (1.1.4, A-2).
+     *
+     * On Android 12 and 12L, switching exact alarms off cancels every exact alarm the app holds,
+     * with no broadcast to say so. An inexact twin of the nearest alarm survives that: it rings
+     * the alarm (late, if Android so chooses) and the re-plan it triggers arms the rest
+     * inexactly. [AlarmPlanner.apply] passes null on every other version, and null cancels any
+     * backstop left over. Like [cancel], it must never throw.
+     */
+    fun guard(next: PlannedAlarm?)
 }
