@@ -2,8 +2,11 @@
 // checkout and writes every snapshot. Run on 21 October 2026 against the SunApp 1.1.3 tree
 // (d770824, the last hand-written app.js), and again on 22 October 2026 against e1b6591, which is
 // that tree plus the Home Screen icon link in the page head: the recapture changed the whole
-// document hash of every snapshot and nothing else. So tests/smoke.ts can prove for as long as the
-// vectors stand that the TypeScript page behaves as 1.1.3 did:
+// document hash of every snapshot and nothing else. Recaptured a third time on 23 October 2026 against
+// e1b6591 with the D-10 wording change to index.html applied (the privacy sentence in the meta
+// description, the JSON-LD description and the footer): again only the document hash of each of the
+// 178 snapshots changed, and sources.app.js still names the hand-written 1.1.3 script. So
+// tests/smoke.ts can prove for as long as the vectors stand that the TypeScript page behaves as 1.1.3 did:
 //
 //   node tests/capture-vectors.ts --root /path/to/e1b6591/checkout
 //                                 --label "SunApp 1.1.3 with the Home Screen icon (e1b6591)"
