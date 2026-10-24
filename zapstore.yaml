@@ -75,6 +75,7 @@ icon: ./fastlane/metadata/android/en-US/images/icon.png
 images:
   - ./android/screenshots/01-times.png
   - ./android/screenshots/02-alarms.png
+  - ./android/screenshots/03-footer.png
 
 # No release_source: zsp pulls the APK straight from the GitHub release, so the
 # asset URL in the nostr event points at the same signed binary the release page

@@ -62,7 +62,7 @@ import no.stormberry.sunapp.solar.DayKindCalculator
 import no.stormberry.sunapp.solar.SolarEvent
 import no.stormberry.sunapp.solar.SunCalc
 import no.stormberry.sunapp.ui.components.AppFooter
-import no.stormberry.sunapp.ui.components.AppHeader
+import no.stormberry.sunapp.ui.components.AppHero
 import no.stormberry.sunapp.ui.components.DayLengthBar
 import no.stormberry.sunapp.ui.components.EmptyResults
 import no.stormberry.sunapp.ui.components.MetaCard
@@ -231,72 +231,76 @@ fun SunTimesScreen(settings: Settings, modifier: Modifier = Modifier) {
     }
 
     Box(modifier = modifier.fillMaxSize().drawBehind { drawSkyGlow() }) {
+        // The footer runs the full width of the screen, as the web footer does, so the scroll
+        // column carries no side padding of its own: the hero, the cards and the results are
+        // inset by the inner column, the footer is not.
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .verticalScroll(rememberScrollState())
-                .padding(horizontal = 18.dp, vertical = 24.dp),
+                .verticalScroll(rememberScrollState()),
         ) {
-            AppHeader()
-            Spacer(Modifier.height(22.dp))
+            Column(modifier = Modifier.padding(start = 18.dp, end = 18.dp, top = 40.dp)) {
+                AppHero()
+                Spacer(Modifier.height(32.dp))
 
-            SunCard {
-                ModeTabs(
-                    mode = mode,
-                    onSelect = {
-                        mode = it
-                        settings.mode = it
-                        coordinateError = null
-                    },
-                )
-                Spacer(Modifier.height(16.dp))
-
-                when (mode) {
-                    InputMode.CITY -> CityPicker(
-                        state = catalogue,
-                        query = query,
-                        onQueryChange = { query = it },
-                        suggestions = suggestions,
-                        onSelect = ::selectCity,
-                        selectedLabel = place?.takeIf { it.fromCatalogue }?.label,
-                        onClear = {
-                            place = null
-                            settings.place = null
+                SunCard {
+                    ModeTabs(
+                        mode = mode,
+                        onSelect = {
+                            mode = it
+                            settings.mode = it
+                            coordinateError = null
                         },
                     )
+                    Spacer(Modifier.height(16.dp))
 
-                    InputMode.COORDINATES -> CoordinateFields(
-                        latText = latText,
-                        lonText = lonText,
-                        onLatChange = { latText = it; coordinateError = null },
-                        onLonChange = { lonText = it; coordinateError = null },
-                        error = coordinateError,
-                        onApply = ::applyCoordinates,
+                    when (mode) {
+                        InputMode.CITY -> CityPicker(
+                            state = catalogue,
+                            query = query,
+                            onQueryChange = { query = it },
+                            suggestions = suggestions,
+                            onSelect = ::selectCity,
+                            selectedLabel = place?.takeIf { it.fromCatalogue }?.label,
+                            onClear = {
+                                place = null
+                                settings.place = null
+                            },
+                        )
+
+                        InputMode.COORDINATES -> CoordinateFields(
+                            latText = latText,
+                            lonText = lonText,
+                            onLatChange = { latText = it; coordinateError = null },
+                            onLonChange = { lonText = it; coordinateError = null },
+                            error = coordinateError,
+                            onApply = ::applyCoordinates,
+                        )
+                    }
+
+                    Spacer(Modifier.height(16.dp))
+                    NoLocationNotice()
+                    Spacer(Modifier.height(16.dp))
+
+                    SectionLabel("Date")
+                    Spacer(Modifier.height(8.dp))
+                    DateField(
+                        date = date,
+                        onShift = { days -> dateEpochDay += days },
+                        onPick = { showDatePicker = true },
                     )
                 }
 
-                Spacer(Modifier.height(16.dp))
-                NoLocationNotice()
-                Spacer(Modifier.height(16.dp))
+                Spacer(Modifier.height(20.dp))
 
-                SectionLabel("Date")
-                Spacer(Modifier.height(8.dp))
-                DateField(
-                    date = date,
-                    onShift = { days -> dateEpochDay += days },
-                    onPick = { showDatePicker = true },
-                )
+                if (result == null) {
+                    EmptyResults()
+                } else {
+                    Results(result = result, placeLabel = place?.label.orEmpty())
+                }
+
+                Spacer(Modifier.height(40.dp))
             }
-
-            Spacer(Modifier.height(20.dp))
-
-            if (result == null) {
-                EmptyResults()
-            } else {
-                Results(result = result, placeLabel = place?.label.orEmpty())
-            }
-
-            Spacer(Modifier.height(28.dp))
             AppFooter()
         }
     }

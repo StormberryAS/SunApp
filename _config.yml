@@ -15,6 +15,7 @@ exclude:
   - test.js
   - zapstore.yaml
   - README.md
+  - CHANGELOG.md
   - LICENSE
   - update_cities.py
   - fastlane/
@@ -39,3 +40,5 @@ exclude:
   - tsconfig.sw.json
   - ts/
   - tests/
+# CHANGELOG.md added 23 October 2026: the full release log the store notes link to on GitHub. It is a
+# repository document like README.md, so it is not published on the website.

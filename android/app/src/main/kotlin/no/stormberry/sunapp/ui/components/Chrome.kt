@@ -1,7 +1,6 @@
 package no.stormberry.sunapp.ui.components
 
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -12,7 +11,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
@@ -27,19 +26,20 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.style.TextDecoration
-import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
 import no.stormberry.sunapp.R
 import no.stormberry.sunapp.data.InputMode
 import no.stormberry.sunapp.ui.Sun
 
 /**
- * Shared chrome for the sun-times screen: the header, the section labels, the
- * two-way mode selector, the notices and the footer.
+ * Shared chrome for the sun-times screen: the hero, the section labels, the
+ * two-way mode selector and the notices. The footer is in Footer.kt.
  *
  * These are the pieces that carry the web app's look across to the phone. Where
  * a choice here differs from sun.stormberry.as the comment says why, because the
@@ -47,38 +47,56 @@ import no.stormberry.sunapp.ui.Sun
  * indistinguishable from a mistake.
  */
 
-/** Header: the mark, the name and the web app's tagline, near enough verbatim. */
+/**
+ * The hero: the mark centred with its glow, the name large beneath it and a centred tagline
+ * under the name, the same order and proportions as CheckLink's (64 dp mark, 30 sp name,
+ * a lede, 16 dp between them). The tagline is the one the website's hero shows, word for
+ * word, set the way the website sets it: upper case, tracked out by 0.06 em, on two lines.
+ */
 @Composable
-fun AppHeader(modifier: Modifier = Modifier) {
-    Row(
+fun AppHero(modifier: Modifier = Modifier) {
+    Column(
         modifier = modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically,
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         Image(
             painter = painterResource(R.drawable.ic_app_logo),
-            // Decorative: the title beside it is already the accessible name, so
+            // Decorative: the title below it is already the accessible name, so
             // announcing the mark as well would only slow a screen reader down.
             contentDescription = null,
             modifier = Modifier
-                .size(46.dp)
+                .size(64.dp)
                 .drawBehind { drawLogoGlow() },
         )
-        Spacer(Modifier.width(12.dp))
-        Column(modifier = Modifier.weight(1f)) {
-            Text(
-                text = "SunApp",
-                style = MaterialTheme.typography.headlineSmall,
-                color = Sun.TextPrimary,
-            )
-            Spacer(Modifier.height(4.dp))
-            Text(
-                text = "Sunrise, solar noon and sunset, anywhere on Earth",
-                style = MaterialTheme.typography.bodyMedium,
-                color = Sun.TextSecondary,
-            )
-        }
+        Text(
+            text = "SunApp",
+            color = Sun.TextPrimary,
+            fontSize = 30.sp,
+            lineHeight = 33.sp,
+            fontWeight = FontWeight.Bold,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.semantics { heading() },
+        )
+        Text(
+            // The web's .tagline rule is text-transform: uppercase; the source text keeps
+            // the lower-case "anywhere on Earth" exactly as index.html has it.
+            text = HERO_TAGLINE.uppercase(),
+            color = Sun.TextSecondary,
+            fontSize = 15.2.sp,
+            lineHeight = 23.sp,
+            letterSpacing = 0.06.em,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.widthIn(max = 544.dp),
+        )
     }
 }
+
+/**
+ * The line under the name: the text of `<p class="tagline">` in index.html, with its `<br>`
+ * as a newline. FooterTest compares the two, so the app cannot drift from the website.
+ */
+const val HERO_TAGLINE = "SUNRISE \u00B7 SOLAR NOON \u00B7 SUNSET\nanywhere on Earth"
 
 /** The small upper-case captions the web app puts above each field group. */
 @Composable
@@ -233,79 +251,6 @@ fun Notice(
         )
     }
 }
-
-/** The claim that the manifest backs up, plus the house lockup. */
-@Composable
-fun AppFooter(modifier: Modifier = Modifier) {
-    val uriHandler = LocalUriHandler.current
-    Column(
-        modifier = modifier.fillMaxWidth(),
-        horizontalAlignment = Alignment.CenterHorizontally,
-    ) {
-        Text(
-            // "No permissions" was false: the APK declares nine, all of them for the alarm
-            // (exact alarm, notifications, boot-completed, wake lock, vibrate, full-screen
-            // intent, foreground service). What IS true, and is the headline the manifest
-            // comment defends, is that there is no INTERNET permission at all, so the app
-            // cannot reach the network even if it wanted to. Corrected 2026-09-04; note it
-            // did not reach a user until the release that carries this file, because
-            // android-v1.1.0 was tagged before the correction.
-            text = "Alarm permissions only. No internet. No tracking.",
-            style = MaterialTheme.typography.bodySmall,
-            color = Sun.TextMuted,
-            textAlign = TextAlign.Center,
-        )
-
-        Spacer(Modifier.height(12.dp))
-
-        // The two documents a user is entitled to read before trusting an app. Underlined as
-        // well as coloured, because colour alone is not an accessible affordance for a link.
-        //
-        // Opening these needs no INTERNET permission: LocalUriHandler fires an ACTION_VIEW
-        // intent and the BROWSER does the fetching, in its own process. Do not "fix" this by
-        // adding the permission; the privacy claim above rests on its absence, and the CI
-        // diff against expected-permissions.txt is what keeps that honest.
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            FooterLink("Privacy") { uriHandler.openUri(PRIVACY_URL) }
-            Text("·", style = MaterialTheme.typography.bodySmall, color = Sun.TextMuted)
-            FooterLink("Disclaimer") { uriHandler.openUri(DISCLAIMER_URL) }
-        }
-
-        Spacer(Modifier.height(16.dp))
-
-        Image(
-            painter = painterResource(R.drawable.ic_stormberry_logo),
-            // No longer decorative: it is now the link to stormberry.as, so it needs a name a
-            // screen reader can announce and a Role that says what activating it does.
-            contentDescription = "Stormberry AS website",
-            // Full white would out-shout the app's own content this far down.
-            alpha = 0.72f,
-            // Height only: the drawable carries the lockup's proportions, so the width
-            // follows from them and never has to be kept in sync.
-            modifier = Modifier
-                .height(24.dp)
-                .clickable(role = Role.Button) { uriHandler.openUri(SITE_URL) },
-        )
-    }
-}
-
-@Composable
-private fun FooterLink(label: String, onClick: () -> Unit) {
-    Text(
-        text = label,
-        style = MaterialTheme.typography.bodySmall,
-        color = Sun.TextPrimary,
-        textDecoration = TextDecoration.Underline,
-        modifier = Modifier.clickable(role = Role.Button, onClick = onClick),
-    )
-}
-
-private const val SITE_URL = "https://stormberry.as"
-private const val PRIVACY_URL = "https://stormberry.as/privacy.html"
-private const val DISCLAIMER_URL = "https://sun.stormberry.as/disclaimer.html"
 
 /**
  * The web app's blurred header glow and its cool lower wash, as two radial

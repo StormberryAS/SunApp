@@ -50,3 +50,53 @@ GeoNames city data (cities.js, and data/cities.tsv in the Android app)
   population cutoff take their coordinates from Kartverket's Sentralt
   stedsnavnregister (CC BY 4.0, © Kartverket).
   Full license: https://creativecommons.org/licenses/by/4.0/
+
+Java time backport (android/app, core library desugaring: desugar_jdk_libs 2.1.5)
+  License:   GNU General Public License version 2 with the Classpath Exception
+  Author:    Oracle and/or its affiliates (OpenJDK), repackaged by Google
+  Source:    https://github.com/google/desugar_jdk_libs
+  Copyright (c) Oracle and/or its affiliates. All rights reserved.
+
+  Because the Android app supports Android 7.0 (API 24), which has no java.time,
+  the build adds OpenJDK's java.time classes to the APK under the package name
+  j$.time (and the few other j$ classes that come with them). They are linked, not
+  modified by this project. The Classpath Exception allows that code to be combined
+  with independent modules under other licences, which is how the MIT-licensed app
+  code can use it. The web app does not contain it.
+  Full license: https://openjdk.org/legal/gplv2+ce.html
+  Licence file of the source: https://github.com/google/desugar_jdk_libs/blob/master/LICENSE
+
+Lucide icons (LinkedIn and GitHub marks in the Android footer,
+android/app/src/main/kotlin/no/stormberry/sunapp/ui/components/FooterIcons.kt)
+  License:   ISC
+  Author:    Lucide Icons and Contributors
+  Source:    https://github.com/lucide-icons/lucide
+  Copyright (c) 2026 Lucide Icons and Contributors
+
+  Permission to use, copy, modify, and/or distribute this software for any
+  purpose with or without fee is hereby granted, provided that the above
+  copyright notice and this permission notice appear in all copies.
+  THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+  WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+  MERCHANTABILITY AND FITNESS.
+  Full license: https://github.com/lucide-icons/lucide/blob/main/LICENSE
+  The same two marks appear as inline SVG in the Stormberry website footers.
+
+Nostr ostrich mark (the Nostr icon in the Android footer, FooterIcons.kt)
+  Source:    the Stormberry AS website. The outline entered the Stormberry
+             repositories on 17 March 2026, in the first commit of the website
+             (0b70257, "Initial website setup ..."), and has been copied unchanged
+             into every Stormberry footer since, including CheckLink's, which the
+             Android footer follows.
+  Author and licence: not recorded. That commit names no author, licence or
+             origin for the outline, and this project has not identified one. It is
+             the community's running-ostrich mark for Nostr, used here only to
+             link to Stormberry AS's own Nostr identity. If its author asks for it
+             to be removed or credited, it will be.
+
+Tor onion mark (the Tor icon in the Android footer, FooterIcons.kt)
+  Source:    drawn for Stormberry AS in June 2026 as a plain two-shape onion,
+             first put in the website and app footers on 4 June 2026 (the
+             patch_footer_tor_nostr.py sweep) and copied unchanged since. It is not the Tor Project's logo and uses no
+             Tor Project artwork.
+  License:   the same MIT licence as the rest of this project (see LICENSE).

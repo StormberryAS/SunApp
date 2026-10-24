@@ -64,8 +64,12 @@ android {
         // cancelled with its rule (A-6); a second alarm reports the first as missed (A-5); a
         // snooze that cannot be armed keeps the alarm ringing (A-7); a refused foreground rings
         // through the backup (A-4). No new permission.
-        versionCode = 6
-        versionName = "1.1.4"
+        //
+        // 1.1.5 (code 7), 2026-10-23: a new top and bottom for the sun-times screen, laid out like
+        // CheckLink's: a centred hero (mark, name, tagline) and a footer with the Stormberry
+        // wordmark, the icon row, the privacy line and the legal line. No new permission.
+        versionCode = 7
+        versionName = "1.1.5"
 
         // No instrumentation tests, no test runner, nothing that pulls in extra permissions.
         // Density-split PNGs are generated at build time from vectors and are a source of
