@@ -160,6 +160,54 @@ class FooterTest {
         assertEquals(match!!.groupValues[1].replace("<br>", "\n"), HERO_TAGLINE)
     }
 
+    /**
+     * The website footer and this footer share every line word for word, except two that the page
+     * words for itself (Marcos, 2026-10-25, option B): a page has no alarms and no permissions, and
+     * it is the browser that does the calculating. The app's own two lines stay pinned here, so they
+     * cannot change unnoticed either. The wording of the shared lines is read from Footer.kt, so this
+     * test does not have to be edited when they are.
+     */
+    @Test
+    fun `the website footer repeats the app footer except its two approved web lines`() {
+        val html = repoFile("index.html")
+        val source = repoFile("android/app/src/main/kotlin/no/stormberry/sunapp/ui/components/Footer.kt")
+        assumeTrue("index.html not reachable from the test's working directory", html != null)
+        assumeTrue("Footer.kt not reachable from the test's working directory", source != null)
+        val kt = source!!.readText()
+        val page = html!!.readText()
+        val footer = Regex("""<footer class="site-footer">([\s\S]*?)</footer>""").find(page)?.groupValues?.get(1)
+        assertTrue("no footer in index.html", footer != null)
+        val paragraphs = Regex("""<p\b[^>]*>([\s\S]*?)</p>""").findAll(footer!!)
+            .map { it.groupValues[1].replace(Regex("<[^>]+>"), "").replace(Regex("\\s+"), " ").trim() }
+            .toList()
+
+        // The app's two lines, pinned as approved.
+        val appPrivacy = "Your places and alarms never leave this device. Disconnect and try it."
+        val appPermissions = "Alarm permissions only. No internet. No tracking."
+        assertTrue(appPrivacy, kt.contains("text = \"$appPrivacy\""))
+        assertTrue(appPermissions, kt.contains("text = \"$appPermissions\""))
+
+        // The page's two lines, approved as written.
+        val webPrivacy = "Your places never leave this browser."
+        val webPermissions = "No cookies. No tracking. Every calculation runs in your browser."
+        assertTrue(webPrivacy, paragraphs.contains(webPrivacy))
+        assertTrue(webPermissions, paragraphs.contains(webPermissions))
+        assertFalse(appPrivacy, paragraphs.contains(appPrivacy))
+        assertFalse(appPermissions, paragraphs.contains(appPermissions))
+
+        // Every other single line is the same on both.
+        val shared = listOf(
+            Regex("""text = "(Smarter sales[^"]*)"""").find(kt)?.groupValues?.get(1),
+            Regex("""FooterNote\("(Privacy First[^"]*)"\)""").find(kt)?.groupValues?.get(1),
+            Regex("""FooterNote\("(Proudly powered[^"]*)"\)""").find(kt)?.groupValues?.get(1),
+            "City list dated $CITY_LIST_DATE",
+        )
+        for (line in shared) {
+            assertTrue("a shared line is missing from Footer.kt", line != null)
+            assertTrue("the page footer lacks the app's line: $line", paragraphs.contains(line!!) || footer.contains(line))
+        }
+    }
+
     @Test
     fun `the tagline follows the house rules on dashes`() {
         assertFalse(HERO_TAGLINE.contains('\u2014'))

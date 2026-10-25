@@ -9,7 +9,10 @@
 // fourth time on 24 October 2026 with the footer's "and the Intl API" credit removed from index.html
 // (SunApp 1.1.6): the document hash of each snapshot changed, and in 6 London steps the short zone
 // name read "GMT+0" and now reads "GMT": that comes from Chromium 156's Intl, not from the page, as the
-// same e1b6591 tree gives it too. So
+// same e1b6591 tree gives it too. Recaptured a fifth time on 25 October 2026 with the page footer carrying
+// the app's credit sentence and city list date line, plus the page's two own lines ("Your places never leave
+// this browser.", "No cookies. No tracking. Every calculation runs in your browser."): only the document
+// hash of each of the 178 snapshots changed. So
 // tests/smoke.ts can prove for as long as the vectors stand that the TypeScript page behaves as 1.1.3 did:
 //
 //   node tests/capture-vectors.ts --root /path/to/e1b6591/checkout

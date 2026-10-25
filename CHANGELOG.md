@@ -15,9 +15,20 @@ install-time permissions for the alarm, none new, no location permission and no 
   source and its licence. The icons (Lucide), the programming language and libraries (Kotlin, Jetpack,
   Material, the Java time backport) and the Inter typeface are no longer listed there; they are credited
   in NOTICE and the README, with their licences. Each licence label now stays on one line.
-- **Website:** the footer no longer lists the browser's own Intl API next to SunCalc and GeoNames.
+- **Website:** the footer now carries the same lines as the app's footer, bar two: the credit sentence
+  ("Runs entirely on your device: our own code, SunCalc's formulae (BSD 2-Clause) and city data from
+  GeoNames and Kartverket (CC BY 4.0). Nothing is sent."), each credit linked and each licence label linked
+  to its text, and the city list date, which the page did not carry. Two lines are the page's own, because
+  an app and a page differ in what is true of them: the page says "Your places never leave this browser."
+  and "No cookies. No tracking. Every calculation runs in your browser." where the app says "Your places and
+  alarms never leave this device. Disconnect and try it." and "Alarm permissions only. No internet. No
+  tracking." The page's old "Powered by ..." wording is gone. It had named neither the SunCalc licence nor
+  Kartverket before, and no longer lists the browser's Intl API.
 - **Development only, not shipped:** the footer test now checks the shorter list and that NOTICE and
   the README still document everything left out.
+  A website test compares the page footer with the app's `Footer.kt` sentence by sentence, with the two
+  web lines pinned as approved, so the two cannot drift apart again; `FooterTest` gained the same
+  web-parity check from the Android side (test sources only).
 
 ## 1.1.5 (versionCode 7), 24 October 2026
 
