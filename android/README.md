@@ -12,6 +12,17 @@ silently disagree about when the sun comes up.
 Grab the APK from [Releases](https://github.com/StormberryAS/SunApp/releases), or
 from [Zapstore](https://zapstore.dev).
 
+There are two editions, two separate apps as far as Android is concerned:
+
+| Package | Where | What it is | Signed by |
+|---|---|---|---|
+| `no.stormberry.sunapp` | GitHub Releases, Obtainium, Zapstore | the full app: sun times **and alarms**, nine install-time permissions | our own key, the certificate the NIP-C1 event vouches for |
+| `no.stormberry.sunapp.play` | Google Play | sun times **without alarms**: no permission at all, no alarm code | Google, under Play App Signing, from a bundle we sign with a separate upload key |
+
+They install side by side and **neither can ever update the other**, so nothing Google does
+to the Play edition can reach an install that came from here. Everything below describes the
+full app unless it says Play.
+
 ### Verify what you downloaded
 
 The release carries a `.sha256` alongside it and a signed build attestation:
@@ -144,13 +155,11 @@ Since 1.1.4 (ported from EclipseTracker's fix B) an alarm is harder to lose:
 implementation plan was never cut as a separate artefact: both were built in one
 sitting, so there is no commit at which the tree is alarm-free.
 
-That is recoverable if the zero-permission audit build is wanted later, because
-the split is almost perfectly path-based. Everything alarm-related lives in
-`alarm/`, plus `data/AlarmStore.kt`, `ui/AlarmsScreen.kt`, `ui/RuleEditorScreen.kt`
-and `ui/PermissionSheet.kt`. The only coupling is the navigation wiring in
-`ui/App.kt`. Staging everything except those paths, with the nine permissions
-commented out of the manifest and `expected-permissions.txt`, yields a genuine
-zero-permission build; the sun-times surface references no alarm code at all.
+The zero-permission build is the **Google Play edition**, from 1.1.7: the same source with the
+alarm feature taken out (see "Publishing to Play" below). The split is path-based. Everything
+alarm-related lives in `alarm/`, plus `data/AlarmStore.kt`, `ui/AlarmsScreen.kt`,
+`ui/RuleEditorScreen.kt` and `ui/PermissionSheet.kt`; the only coupling is the navigation wiring
+in `ui/App.kt`, `MainActivity.kt` and the first-run notice, each behind `Edition.ALARMS`.
 
 ## Build it yourself
 
@@ -208,6 +217,14 @@ from `ORG_GRADLE_PROJECT_RELEASE_*` environment variables in CI. Without either,
 the release variant builds unsigned rather than failing, and CI catches that
 with `apksigner verify`.
 
+Google Play uploads are signed with a **separate upload key**, never the release key: three more
+properties in the same file, `playUploadStoreFile`, `playUploadStoreType` and `playUploadKeyAlias`,
+and the two passwords from the keyring as `PLAY_UPLOAD_STORE_PASSWORD` and `PLAY_UPLOAD_KEY_PASSWORD`,
+which are never written to the file. It signs the bundle so Play can tell
+who uploaded it and never anything a user installs, which is why losing it means an upload key
+reset in the Play Console rather than an app that can never be updated again. The build refuses
+to configure when the two keystores are the same file.
+
 ### Permissions are diffed, not trusted
 
 `expected-permissions.txt` lists every permission the APK may declare, nine of
@@ -221,6 +238,43 @@ The comparison is against `aapt dump permissions`, which reports names only, so
 `SCHEDULE_EXACT_ALARM`'s `maxSdkVersion="32"` cap is invisible to it and lives
 solely in the manifest. Change that file and the manifest in the same commit,
 never one without the other.
+
+The Play edition declares **no permission**, and that is checked too: `EditionTest` compares its
+manifest overlay (`app/src/edition-play/AndroidManifest.xml`, all removals) with this file and with
+the main manifest, and `tools/check-play-bundle.sh` reads the built bundle's manifest.
+
+### Publishing to Play
+
+```bash
+cd android
+PLAY_UPLOAD_STORE_PASSWORD="$(secret-tool lookup service android-keystore app sunapp-play-upload)" \
+PLAY_UPLOAD_KEY_PASSWORD="$PLAY_UPLOAD_STORE_PASSWORD" \
+  ./gradlew --no-configuration-cache :app:bundleRelease -PplayBuild=true
+# app/build/outputs/bundle/release/sunapp-play-release.aab
+tools/check-play-bundle.sh app/build/outputs/bundle/release/sunapp-play-release.aab 1.1.7 1009
+```
+
+`-PplayBuild=true` changes the application ID, the signing key, the version code, the source
+set (`Edition.ALARMS` becomes false) and the manifest (the overlay removes the nine permissions
+and the five alarm components). Gradle product flavours are not used: a flavour-level
+`signingConfig` is overridden by the build type's, and a flavour dimension renames every task and
+breaks the APK path in `.github/workflows/android-release.yml` and the regex in `zapstore.yaml`.
+Two guards sit on the release tasks, because the failure modes are permanent:
+
+- **`bundleRelease` without the flag fails.** That AAB would carry the sovereign application ID,
+  alarms included, signed with the release key; uploading it would permanently claim that package
+  on Play and enrol our release certificate into Play App Signing.
+- **`assembleRelease` with the flag fails.** Play takes the bundle. (An installable test copy is
+  made from the bundle with `bundletool build-apks --mode=universal`, signed with the upload key.)
+
+**Two number lines, one codebase.** The Play build shows the same version name and its code is 1000
+plus the sovereign code, so a build's channel is obvious from its code. What must stay true is the
+mapping, and **every Play upload is built from a tag that shipped on GitHub Releases**; never
+respin Play from an untagged tree.
+
+| Sovereign tag | Sovereign version | Play version | Play code |
+|---|---|---|---|
+| `android-v1.1.7` | 1.1.7 (code 9) | 1.1.7 | 1009 |
 
 ### Releasing
 

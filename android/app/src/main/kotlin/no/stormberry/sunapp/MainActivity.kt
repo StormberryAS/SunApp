@@ -51,16 +51,22 @@ class MainActivity : ComponentActivity() {
         // With notifications off or the ring channel turned down an alarm rings with nothing on
         // screen to stop it, so opening SunApp has to be a way to stop it (EclipseTracker's
         // showRingScreenIfRinging).
-        lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.RESUMED) {
-                snapshotFlow { AlarmService.ringing.value }.collect { showRingScreenIfRinging() }
+        //
+        // The Google Play edition has no alarms (Edition.ALARMS is false), so nothing rings and
+        // nothing is observed or re-planned: every alarm line in this class sits behind that
+        // constant, which lets R8 delete it, and the alarm classes only it reached, from that build.
+        if (Edition.ALARMS) {
+            lifecycleScope.launch {
+                repeatOnLifecycle(Lifecycle.State.RESUMED) {
+                    snapshotFlow { AlarmService.ringing.value }.collect { showRingScreenIfRinging() }
+                }
             }
         }
     }
 
     override fun onResume() {
         super.onResume()
-        replanInBackground()
+        if (Edition.ALARMS) replanInBackground()
     }
 
     /**

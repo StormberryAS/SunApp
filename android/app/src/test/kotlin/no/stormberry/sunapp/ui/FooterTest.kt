@@ -4,6 +4,7 @@ import androidx.compose.ui.graphics.vector.PathNode
 import androidx.compose.ui.graphics.vector.VectorPath
 import no.stormberry.sunapp.ui.components.CITY_LIST_DATE
 import no.stormberry.sunapp.ui.components.FooterIcons
+import no.stormberry.sunapp.ui.components.FooterLines
 import no.stormberry.sunapp.ui.components.FooterTargets
 import no.stormberry.sunapp.ui.components.HERO_TAGLINE
 import no.stormberry.sunapp.ui.components.LICENCE_BSD_2_CLAUSE
@@ -64,7 +65,7 @@ class FooterTest {
             }
         }
         // Thirteen links in all: wordmark, four icons, the register, Privacy and Disclaimer,
-        // then the five of the credit sentence.
+        // then the five of the credit sentence, in both editions.
         assertEquals(13, FooterTargets.all.size)
         assertEquals(13, FooterTargets.all.toSet().size)
     }
@@ -184,8 +185,10 @@ class FooterTest {
         // The app's two lines, pinned as approved.
         val appPrivacy = "Your places and alarms never leave this device. Disconnect and try it."
         val appPermissions = "Alarm permissions only. No internet. No tracking."
-        assertTrue(appPrivacy, kt.contains("text = \"$appPrivacy\""))
-        assertTrue(appPermissions, kt.contains("text = \"$appPermissions\""))
+        assertTrue(appPrivacy, kt.contains("const val PRIVACY_ALARMS = \"$appPrivacy\""))
+        assertTrue(appPermissions, kt.contains("const val PERMISSIONS_ALARMS = \"$appPermissions\""))
+        assertEquals(appPrivacy, FooterLines.PRIVACY_ALARMS)
+        assertEquals(appPermissions, FooterLines.PERMISSIONS_ALARMS)
 
         // The page's two lines, approved as written.
         val webPrivacy = "Your places never leave this browser."
@@ -205,6 +208,24 @@ class FooterTest {
         for (line in shared) {
             assertTrue("a shared line is missing from Footer.kt", line != null)
             assertTrue("the page footer lacks the app's line: $line", paragraphs.contains(line!!) || footer.contains(line))
+        }
+    }
+
+    /**
+     * The Google Play edition has no alarms and declares no permissions, so its two lines say that
+     * (DRAFT wording until Marcos approves it). The sovereign lines are pinned above and in the
+     * website test.
+     */
+    @Test
+    fun `the Play edition's footer lines are true of an app with no alarms and no permissions`() {
+        assertEquals("Your places never leave this device. Disconnect and try it.", FooterLines.PRIVACY_PLAY)
+        assertEquals("No permissions. No internet. No tracking.", FooterLines.PERMISSIONS_PLAY)
+        for (line in listOf(FooterLines.PRIVACY_PLAY, FooterLines.PERMISSIONS_PLAY)) {
+            assertFalse(line, line.contains("alarm", ignoreCase = true))
+        }
+        for (line in listOf(FooterLines.PRIVACY_PLAY, FooterLines.PERMISSIONS_PLAY)) {
+            assertFalse(line, line.contains('\u2014'))
+            assertFalse(line, line.contains("--"))
         }
     }
 

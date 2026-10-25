@@ -22,6 +22,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import no.stormberry.sunapp.Edition
 import no.stormberry.sunapp.alarm.AlarmIntentHandoff
 import no.stormberry.sunapp.alarm.AlarmScheduling
 import no.stormberry.sunapp.data.Settings
@@ -60,18 +61,25 @@ import no.stormberry.sunapp.data.SharedPreferencesRuleFile
  * [Settings] and the rule file are `remember`ed rather than constructed inline because
  * `getSharedPreferences` hits the filesystem on first call, and a composable recomposes far
  * more often than a preference file needs opening.
+ *
+ * ### The Google Play edition has no Alarms tab
+ *
+ * `Edition.ALARMS` is false there: the root shows the sun-times screen alone, with no tab bar,
+ * no alarm store and no call into the alarm runtime. Every alarm line below sits behind that
+ * constant, so R8 deletes it from the Play build and the alarm classes with it.
  */
 @Composable
 fun SunApp(modifier: Modifier = Modifier) {
     val context = LocalContext.current
     val settings = remember { Settings(context) }
-    val ruleFile = remember { SharedPreferencesRuleFile(context) }
 
     // An AlarmClock intent that reached AlarmIntentActivity a moment ago has left a note. It
     // is only peeked at here, to choose the opening tab; AlarmsRoot is what consumes it, so
     // the seed cannot be lost by the app opening on the wrong screen.
     var tab by remember {
-        mutableStateOf(if (AlarmIntentHandoff.pending(context)) SunTab.ALARMS else SunTab.SUN_TIMES)
+        mutableStateOf(
+            if (Edition.ALARMS && AlarmIntentHandoff.pending(context)) SunTab.ALARMS else SunTab.SUN_TIMES,
+        )
     }
 
     // Read once, at the first composition. The dialog's own dismissal is what writes the
@@ -88,18 +96,15 @@ fun SunApp(modifier: Modifier = Modifier) {
                 modifier = Modifier.weight(1f),
             )
 
-            SunTab.ALARMS -> AlarmsRoot(
-                ruleFile = ruleFile,
-                // Whatever the user was last looking at is nearly always what they want an
-                // alarm for. Offered as a starting value in the editor, never imposed.
-                defaultPlace = settings.place,
-                onRulesChanged = { AlarmScheduling.replan(context) },
-                modifier = Modifier.weight(1f),
-            )
+            SunTab.ALARMS -> if (Edition.ALARMS) {
+                AlarmsTab(settings = settings, modifier = Modifier.weight(1f))
+            }
         }
 
-        HorizontalDivider(color = Sun.Border)
-        SunTabBar(tab = tab, onSelect = { tab = it })
+        if (Edition.ALARMS) {
+            HorizontalDivider(color = Sun.Border)
+            SunTabBar(tab = tab, onSelect = { tab = it })
+        }
 
         // A dialog composes into its own window and emits no node into this Column, so it
         // sits here for readability rather than for layout. It is the last child because it
@@ -113,7 +118,26 @@ fun SunApp(modifier: Modifier = Modifier) {
     }
 }
 
-/** The two things SunApp does. */
+/**
+ * The Alarms tab, with the collaborators only it needs. A function of its own so that an edition
+ * without alarms never builds the rule store or reaches the alarm runtime: the call to it is the
+ * only reference, and it sits behind `Edition.ALARMS`.
+ */
+@Composable
+private fun AlarmsTab(settings: Settings, modifier: Modifier = Modifier) {
+    val context = LocalContext.current
+    val ruleFile = remember { SharedPreferencesRuleFile(context) }
+    AlarmsRoot(
+        ruleFile = ruleFile,
+        // Whatever the user was last looking at is nearly always what they want an
+        // alarm for. Offered as a starting value in the editor, never imposed.
+        defaultPlace = settings.place,
+        onRulesChanged = { AlarmScheduling.replan(context) },
+        modifier = modifier,
+    )
+}
+
+/** The two things SunApp does (the Google Play edition does only the first). */
 enum class SunTab { SUN_TIMES, ALARMS }
 
 @Composable

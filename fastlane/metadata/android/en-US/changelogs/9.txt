@@ -1,0 +1,1 @@
+1.1.7 changes nothing you use. SunApp, its alarms and its nine permissions are as in 1.1.6, still with no internet access. What changes is how the app is built: one source now also makes a separate edition without alarms for Google Play. This full version stays here, with the alarms. Full release log: https://github.com/StormberryAS/SunApp/blob/main/CHANGELOG.md

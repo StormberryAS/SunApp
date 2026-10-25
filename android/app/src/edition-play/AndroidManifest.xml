@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <!--
+      THE GOOGLE PLAY EDITION: SunApp WITHOUT ALARMS (no.stormberry.sunapp.play).
+
+      Merged over src/main/AndroidManifest.xml by -PplayBuild=true only (app/build.gradle.kts).
+      Every line here is a removal: nothing is added, so this file can only make the merged
+      manifest smaller. The sovereign build never reads it.
+
+      Play declares ZERO permissions. Each of the nine the sovereign build declares for the alarm
+      feature is removed, and so is every component that feature owns: the AlarmClock intent
+      trampoline, the ring screen, the ringing service, the alarm broadcast receiver and the
+      receiver for boot, time and zone changes. `Edition.ALARMS` is false in this edition, which
+      is also what removes the Alarms tab and the code behind it. The permission-based review
+      gates that keep the alarm feature off Play (USE_EXACT_ALARM, USE_FULL_SCREEN_INTENT and the
+      foreground-service-type declaration) therefore do not apply to it.
+
+      Fully qualified class names: relative ones (".alarm.X") are resolved by the manifest merger
+      against the package, which is the namespace, and the application ID is different here.
+      The check is in android/tools/check-play-bundle.sh: it reads the built bundle's manifest
+      and fails on any uses-permission or any alarm component.
+    -->
+    <uses-permission android:name="android.permission.USE_EXACT_ALARM" tools:node="remove" />
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" tools:node="remove" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" tools:node="remove" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" tools:node="remove" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" tools:node="remove" />
+    <uses-permission android:name="android.permission.VIBRATE" tools:node="remove" />
+    <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" tools:node="remove" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" tools:node="remove" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" tools:node="remove" />
+
+    <application>
+        <activity android:name="no.stormberry.sunapp.alarm.AlarmIntentActivity" tools:node="remove" />
+        <activity android:name="no.stormberry.sunapp.alarm.RingActivity" tools:node="remove" />
+        <service android:name="no.stormberry.sunapp.alarm.AlarmService" tools:node="remove" />
+        <receiver android:name="no.stormberry.sunapp.alarm.AlarmFireReceiver" tools:node="remove" />
+        <receiver android:name="no.stormberry.sunapp.alarm.SystemEventReceiver" tools:node="remove" />
+    </application>
+
+</manifest>

@@ -41,6 +41,7 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.net.toUri
+import no.stormberry.sunapp.Edition
 import no.stormberry.sunapp.R
 import no.stormberry.sunapp.ui.Sun
 
@@ -52,6 +53,12 @@ import no.stormberry.sunapp.ui.Sun
  * Every address it opens is in [FooterTargets]. They are the same addresses as in CheckLink's
  * footer, except Privacy and Disclaimer, which stay what this app has always opened, and
  * the five addresses of the credit sentence.
+ *
+ * ### Two lines differ in the Google Play edition
+ *
+ * That edition has no alarms and declares no permissions, so its privacy line and permission
+ * line say what is true of it ([FooterLines]). Nothing is added. The sovereign edition's footer
+ * is exactly what it was.
  *
  * ### No INTERNET permission, still
  *
@@ -116,7 +123,7 @@ fun AppFooter(modifier: Modifier = Modifier) {
                     SocialRow(open)
 
                     Text(
-                        text = "Your places and alarms never leave this device. Disconnect and try it.",
+                        text = if (Edition.ALARMS) FooterLines.PRIVACY_ALARMS else FooterLines.PRIVACY_PLAY,
                         color = Sun.TextSecondary,
                         fontSize = 14.4.sp,
                         lineHeight = 23.sp,
@@ -125,7 +132,7 @@ fun AppFooter(modifier: Modifier = Modifier) {
                     )
 
                     Text(
-                        text = "Alarm permissions only. No internet. No tracking.",
+                        text = if (Edition.ALARMS) FooterLines.PERMISSIONS_ALARMS else FooterLines.PERMISSIONS_PLAY,
                         color = Sun.TextSecondary,
                         // 13.6 sp, as the legal lines: at 14.4 sp the last word wrapped alone.
                         fontSize = 13.6.sp,
@@ -149,6 +156,20 @@ fun AppFooter(modifier: Modifier = Modifier) {
             }
         }
     }
+}
+
+/**
+ * The privacy and permission lines of the two editions. The sovereign edition has alarms and
+ * declares nine permissions for them; the Google Play edition has neither, and its lines say so.
+ * The website words these two lines for itself (a page has no device and no permissions), which
+ * `FooterTest` pins against `index.html`; the Play wording is the sovereign wording with the
+ * alarm part taken out, and every other footer line is the same in both editions.
+ */
+internal object FooterLines {
+    const val PRIVACY_ALARMS = "Your places and alarms never leave this device. Disconnect and try it."
+    const val PRIVACY_PLAY = "Your places never leave this device. Disconnect and try it."
+    const val PERMISSIONS_ALARMS = "Alarm permissions only. No internet. No tracking."
+    const val PERMISSIONS_PLAY = "No permissions. No internet. No tracking."
 }
 
 /** The date of the bundled city catalogue (data/cities.tsv), as the footer states it. */

@@ -14,6 +14,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
+import no.stormberry.sunapp.Edition
 import no.stormberry.sunapp.ui.components.Notice
 
 /**
@@ -130,19 +131,22 @@ fun FirstRunNotice(onDismiss: () -> Unit) {
                         "published astronomical algorithms. The figures are calculated, not " +
                         "measured. Check anything important against an official source.",
                 )
-                Spacer(Modifier.height(16.dp))
-                Notice(
-                    // The point that matters most gets the treatment the permission sheet
-                    // gives a blocking gap, because this is the one that can cost somebody a
-                    // flight rather than a few seconds of sunrise.
-                    title = "Alarms are best effort",
-                    body = "Android may delay or cancel an alarm when the device is off, out " +
-                        "of battery, in a restricted power mode, or when the manufacturer " +
-                        "force-stops the app. Samsung and Xiaomi are among the manufacturers " +
-                        "known to do this. Do not rely on SunApp as your only alarm for " +
-                        "anything that matters.",
-                    accent = Sun.Orange,
-                )
+                // The Google Play edition has no alarms, so it has nothing to say about them.
+                if (Edition.ALARMS) {
+                    Spacer(Modifier.height(16.dp))
+                    Notice(
+                        // The point that matters most gets the treatment the permission sheet
+                        // gives a blocking gap, because this is the one that can cost somebody a
+                        // flight rather than a few seconds of sunrise.
+                        title = "Alarms are best effort",
+                        body = "Android may delay or cancel an alarm when the device is off, out " +
+                            "of battery, in a restricted power mode, or when the manufacturer " +
+                            "force-stops the app. Samsung and Xiaomi are among the manufacturers " +
+                            "known to do this. Do not rely on SunApp as your only alarm for " +
+                            "anything that matters.",
+                        accent = Sun.Orange,
+                    )
+                }
             }
         },
         confirmButton = {

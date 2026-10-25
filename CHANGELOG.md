@@ -5,7 +5,25 @@ Every released version of SunApp for Android, newest first. Each release's store
 here. The APKs, their `.sha256` files and their build provenance attestations are on the
 [releases page](https://github.com/StormberryAS/SunApp/releases).
 
-## 1.1.6 (versionCode 8), 24 October 2026
+## 1.1.7 (versionCode 9)
+
+Nothing you use in this app changes: the same alarms, the same nine install-time permissions for them,
+none new, no location permission and no internet access. What changes is how SunApp is built.
+
+- **A Google Play edition, from the same source:** a build switch (`-PplayBuild=true`) now makes
+  `no.stormberry.sunapp.play`, SunApp without alarms. It declares no permission at all and contains no
+  alarm receiver, service or screen, and it has no Alarms tab. Its footer says "No permissions. No
+  internet. No tracking." It is a separate app with its own package name and a signing key that
+  Google holds: it installs beside this one and neither can update the other. This app's APK is built
+  as before, signed with the same key, and its manifest is unchanged.
+- **Fixed in the log:** the 1.1.6 heading below now carries the date of its tag, 25 October 2026.
+- **Development only, not shipped:** `EditionTest` compares the Play edition's manifest overlay with
+  `expected-permissions.txt` and with the main manifest, so a permission or an alarm component added to
+  one and not the other fails the tests; `FooterTest` pins the Play edition's lines;
+  `android/tools/check-play-bundle.sh` checks a built Play bundle (package, version, no permission, no
+  alarm component, upload certificate).
+
+## 1.1.6 (versionCode 8), 25 October 2026
 
 The footer credits less, and only what matters. Nothing about how SunApp works changes: still nine
 install-time permissions for the alarm, none new, no location permission and no internet access.
