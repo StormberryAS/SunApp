@@ -68,8 +68,12 @@ android {
         // 1.1.5 (code 7), 2026-10-23: a new top and bottom for the sun-times screen, laid out like
         // CheckLink's: a centred hero (mark, name, tagline) and a footer with the Stormberry
         // wordmark, the icon row, the privacy line and the legal line. No new permission.
-        versionCode = 7
-        versionName = "1.1.5"
+        //
+        // 1.1.6 (code 8), 2026-10-24: the footer's credit sentence names only SunCalc, GeoNames and
+        // Kartverket; icons, languages, libraries and the font are credited in NOTICE and the
+        // README. No new permission.
+        versionCode = 8
+        versionName = "1.1.6"
 
         // No instrumentation tests, no test runner, nothing that pulls in extra permissions.
         // Density-split PNGs are generated at build time from vectors and are a source of

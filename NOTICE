@@ -66,6 +66,24 @@ Java time backport (android/app, core library desugaring: desugar_jdk_libs 2.1.5
   Full license: https://openjdk.org/legal/gplv2+ce.html
   Licence file of the source: https://github.com/google/desugar_jdk_libs/blob/master/LICENSE
 
+Kotlin, Jetpack and Material (the Android app's programming language and libraries)
+  License:   Apache License 2.0
+  Author:    JetBrains s.r.o. (Kotlin); Google LLC and the Android Open Source
+             Project (Jetpack: AndroidX core, lifecycle, activity, Compose UI and
+             Material 3)
+  Source:    https://github.com/JetBrains/kotlin and https://github.com/androidx/androidx
+  Copyright (c) JetBrains s.r.o. and the Kotlin Programming Language contributors;
+  Copyright (c) The Android Open Source Project.
+
+  The Android app is written in Kotlin and built on these libraries, which are linked
+  and not modified by this project; the Kotlin standard library and the Jetpack
+  libraries are packaged in the APK. Licensed under the Apache License, Version 2.0
+  (the "License"); you may not use these files except in compliance with the License.
+  Unless required by applicable law or agreed to in writing, software distributed
+  under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
+  CONDITIONS OF ANY KIND, either express or implied.
+  Full license: https://www.apache.org/licenses/LICENSE-2.0
+
 Lucide icons (LinkedIn and GitHub marks in the Android footer,
 android/app/src/main/kotlin/no/stormberry/sunapp/ui/components/FooterIcons.kt)
   License:   ISC

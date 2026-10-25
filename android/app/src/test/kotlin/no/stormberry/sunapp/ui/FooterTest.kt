@@ -6,6 +6,8 @@ import no.stormberry.sunapp.ui.components.CITY_LIST_DATE
 import no.stormberry.sunapp.ui.components.FooterIcons
 import no.stormberry.sunapp.ui.components.FooterTargets
 import no.stormberry.sunapp.ui.components.HERO_TAGLINE
+import no.stormberry.sunapp.ui.components.LICENCE_BSD_2_CLAUSE
+import no.stormberry.sunapp.ui.components.LICENCE_CC_BY
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -61,10 +63,10 @@ class FooterTest {
                 assertFalse(url, uri.host.isNullOrEmpty())
             }
         }
-        // Twenty-two links in all: wordmark, four icons, the register, Privacy and Disclaimer,
-        // then the fourteen of the credit sentence.
-        assertEquals(22, FooterTargets.all.size)
-        assertEquals(22, FooterTargets.all.toSet().size)
+        // Thirteen links in all: wordmark, four icons, the register, Privacy and Disclaimer,
+        // then the five of the credit sentence.
+        assertEquals(13, FooterTargets.all.size)
+        assertEquals(13, FooterTargets.all.toSet().size)
     }
 
     @Test
@@ -74,41 +76,61 @@ class FooterTest {
             "https://github.com/mourner/suncalc/blob/master/LICENSE",
             FooterTargets.SUNCALC_LICENCE,
         )
-        assertEquals("https://rsms.me/inter/", FooterTargets.INTER)
-        assertEquals("https://openfontlicense.org/open-font-license-official-text/", FooterTargets.OFL)
-        assertEquals("https://github.com/androidx/androidx", FooterTargets.JETPACK)
-        assertEquals("https://github.com/JetBrains/kotlin", FooterTargets.KOTLIN)
-        assertEquals("https://www.apache.org/licenses/LICENSE-2.0", FooterTargets.APACHE)
         assertEquals("https://www.geonames.org/", FooterTargets.GEONAMES)
         assertEquals("https://www.kartverket.no/en/api-and-data", FooterTargets.KARTVERKET)
         assertEquals("https://creativecommons.org/licenses/by/4.0/", FooterTargets.CC_BY)
-        assertEquals("https://github.com/google/desugar_jdk_libs", FooterTargets.DESUGAR)
-        assertEquals("https://openjdk.org/legal/gplv2+ce.html", FooterTargets.GPL_CE)
-        assertEquals("https://github.com/lucide-icons/lucide", FooterTargets.LUCIDE)
-        assertEquals(
-            "https://github.com/lucide-icons/lucide/blob/main/LICENSE",
-            FooterTargets.LUCIDE_LICENCE,
-        )
-        assertEquals(14, FooterTargets.credits.size)
-        // Credits are for things the app ships; every one must be named in NOTICE or be a
-        // platform library (Jetpack, Kotlin) that NOTICE does not list.
+        assertEquals(5, FooterTargets.credits.size)
+    }
+
+    @Test
+    fun `every licence label stays on one line`() {
+        for (label in listOf(LICENCE_BSD_2_CLAUSE, LICENCE_CC_BY)) {
+            assertFalse(label, label.contains(' '))
+            assertFalse(label, label.contains('-'))
+        }
+        assertEquals("BSD\u00A02\u2011Clause", LICENCE_BSD_2_CLAUSE)
+        assertEquals("CC\u00A0BY\u00A04.0", LICENCE_CC_BY)
+    }
+
+    @Test
+    fun `the footer credits only third-party projects and data, and NOTICE documents every credit and what was left out`() {
+        // Marcos, 2026-10-24: icons, programming languages, platform libraries and the font
+        // are credited in NOTICE and the README, not in the footer.
+        val footer = FooterTargets.all.joinToString("\n")
+        for (left in listOf(
+            "lucide", "JetBrains", "androidx", "desugar", "openjdk", "apache.org", "rsms.me",
+            "openfontlicense",
+        )) {
+            assertFalse(left, footer.contains(left, ignoreCase = true))
+        }
         val notice = repoFile("NOTICE")
         assumeTrue("NOTICE not reachable from the test's working directory", notice != null)
         val text = notice!!.readText()
         val needles = listOf(
             "SunCalc", "Inter", "GeoNames", "Kartverket", "BSD 2-Clause", "OFL-1.1", "CC BY 4.0",
             "desugar_jdk_libs", "Classpath Exception", "Lucide", "ISC", "ostrich", "onion",
+            "Kotlin", "Jetpack", "Material", "Apache License 2.0",
         )
         for (needle in needles) {
             assertTrue(needle, text.contains(needle))
         }
         val noticeUrls = listOf(
-            FooterTargets.SUNCALC, FooterTargets.INTER, FooterTargets.GEONAMES,
-            FooterTargets.DESUGAR, FooterTargets.GPL_CE, FooterTargets.LUCIDE,
-            FooterTargets.LUCIDE_LICENCE,
+            FooterTargets.SUNCALC, "https://rsms.me/inter/", FooterTargets.GEONAMES,
+            "https://github.com/google/desugar_jdk_libs", "https://openjdk.org/legal/gplv2+ce.html",
+            "https://github.com/lucide-icons/lucide",
+            "https://github.com/lucide-icons/lucide/blob/main/LICENSE",
+            "https://github.com/JetBrains/kotlin", "https://github.com/androidx/androidx",
+            "https://www.apache.org/licenses/LICENSE-2.0",
         )
         for (url in noticeUrls) {
             assertTrue(url, text.contains(url))
+        }
+        // The README names them too, so a reader of either finds the full list.
+        val readme = repoFile("README.md")
+        assumeTrue("README.md not reachable from the test's working directory", readme != null)
+        val readmeText = readme!!.readText()
+        for (needle in listOf("SunCalc", "GeoNames", "Kartverket", "Inter", "Lucide", "Kotlin", "Jetpack")) {
+            assertTrue(needle, readmeText.contains(needle))
         }
     }
 

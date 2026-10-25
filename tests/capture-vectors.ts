@@ -5,7 +5,11 @@
 // document hash of every snapshot and nothing else. Recaptured a third time on 23 October 2026 against
 // e1b6591 with the D-10 wording change to index.html applied (the privacy sentence in the meta
 // description, the JSON-LD description and the footer): again only the document hash of each of the
-// 178 snapshots changed, and sources.app.js still names the hand-written 1.1.3 script. So
+// 178 snapshots changed, and sources.app.js still names the hand-written 1.1.3 script. Recaptured a
+// fourth time on 24 October 2026 with the footer's "and the Intl API" credit removed from index.html
+// (SunApp 1.1.6): the document hash of each snapshot changed, and in 6 London steps the short zone
+// name read "GMT+0" and now reads "GMT": that comes from Chromium 156's Intl, not from the page, as the
+// same e1b6591 tree gives it too. So
 // tests/smoke.ts can prove for as long as the vectors stand that the TypeScript page behaves as 1.1.3 did:
 //
 //   node tests/capture-vectors.ts --root /path/to/e1b6591/checkout

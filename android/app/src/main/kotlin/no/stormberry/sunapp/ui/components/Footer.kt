@@ -51,7 +51,7 @@ import no.stormberry.sunapp.ui.Sun
  *
  * Every address it opens is in [FooterTargets]. They are the same addresses as in CheckLink's
  * footer, except Privacy and Disclaimer, which stay what this app has always opened, and
- * the fourteen addresses of the credit sentence.
+ * the five addresses of the credit sentence.
  *
  * ### No INTERNET permission, still
  *
@@ -226,14 +226,18 @@ private fun SocialIcon(
 }
 
 /**
- * "Runs entirely on your device: our own code, SunCalc's formulae (BSD 2-Clause), the Inter
- * typeface (OFL 1.1), Jetpack and Kotlin libraries (Apache 2.0), the Java time backport
- * (GPL 2.0 with Classpath Exception), Lucide's LinkedIn and GitHub icons (ISC) and city data
- * from GeoNames and Kartverket (CC BY 4.0). Nothing is sent."
+ * "Runs entirely on your device: our own code, SunCalc's formulae (BSD 2-Clause) and city
+ * data from GeoNames and Kartverket (CC BY 4.0). Nothing is sent."
  *
- * Each part links to its source and each licence to its text. NOTICE keeps the full notices
- * (BSD's copyright and disclaimer must travel with the code); this is the plain-sentence
- * credit, and it is not a substitute for NOTICE.
+ * Only the third-party projects and data the app's function is built on are credited here,
+ * each linked to its source and each licence to its text (Marcos, 2026-10-24). The icons,
+ * the programming languages and platform libraries (Kotlin, Jetpack, Material, the Java
+ * time backport) and the Inter typeface are not in the footer: NOTICE and the README
+ * document them. NOTICE keeps the full notices (BSD's copyright and disclaimer must travel
+ * with the code); this is the plain-sentence credit, and it is not a substitute for NOTICE.
+ *
+ * Each licence label is one unbreakable run: no-break spaces and a non-breaking hyphen, so
+ * "BSD 2-Clause" and "CC BY 4.0" never split across two lines.
  */
 private fun creditLine(open: (String) -> Unit): AnnotatedString {
     val link = TextLinkStyles(
@@ -246,34 +250,20 @@ private fun creditLine(open: (String) -> Unit): AnnotatedString {
         append("Runs entirely on your device: our own code, ")
         url("SunCalc", FooterTargets.SUNCALC)
         append("'s formulae (")
-        url("BSD 2-Clause", FooterTargets.SUNCALC_LICENCE)
-        append("), the ")
-        url("Inter", FooterTargets.INTER)
-        append(" typeface (")
-        url("OFL 1.1", FooterTargets.OFL)
-        append("), ")
-        url("Jetpack", FooterTargets.JETPACK)
-        append(" and ")
-        url("Kotlin", FooterTargets.KOTLIN)
-        append(" libraries (")
-        url("Apache 2.0", FooterTargets.APACHE)
-        append("), the ")
-        url("Java time backport", FooterTargets.DESUGAR)
-        append(" (")
-        url("GPL 2.0 with Classpath Exception", FooterTargets.GPL_CE)
-        append("), the ")
-        url("Lucide", FooterTargets.LUCIDE)
-        append(" LinkedIn and GitHub icons (")
-        url("ISC", FooterTargets.LUCIDE_LICENCE)
+        url(LICENCE_BSD_2_CLAUSE, FooterTargets.SUNCALC_LICENCE)
         append(") and city data from ")
         url("GeoNames", FooterTargets.GEONAMES)
         append(" and ")
         url("Kartverket", FooterTargets.KARTVERKET)
         append(" (")
-        url("CC BY 4.0", FooterTargets.CC_BY)
+        url(LICENCE_CC_BY, FooterTargets.CC_BY)
         append("). Nothing is sent.")
     }
 }
+
+/** Licence labels, each on one line: no-break spaces, and a non-breaking hyphen in "2-Clause". */
+internal const val LICENCE_BSD_2_CLAUSE = "BSD\u00A02\u2011Clause"
+internal const val LICENCE_CC_BY = "CC\u00A0BY\u00A04.0"
 
 /**
  * "© 2026 Stormberry AS · Org.nr. NO 937 751 249 · Askøy, Norway · Privacy · Disclaimer",
@@ -317,23 +307,11 @@ object FooterTargets {
     // The credit sentence: each part's source, and each licence's text.
     const val SUNCALC = "https://github.com/mourner/suncalc"
     const val SUNCALC_LICENCE = "https://github.com/mourner/suncalc/blob/master/LICENSE"
-    const val INTER = "https://rsms.me/inter/"
-    const val OFL = "https://openfontlicense.org/open-font-license-official-text/"
-    const val JETPACK = "https://github.com/androidx/androidx"
-    const val KOTLIN = "https://github.com/JetBrains/kotlin"
-    const val APACHE = "https://www.apache.org/licenses/LICENSE-2.0"
-    const val DESUGAR = "https://github.com/google/desugar_jdk_libs"
-    const val GPL_CE = "https://openjdk.org/legal/gplv2+ce.html"
-    const val LUCIDE = "https://github.com/lucide-icons/lucide"
-    const val LUCIDE_LICENCE = "https://github.com/lucide-icons/lucide/blob/main/LICENSE"
     const val GEONAMES = "https://www.geonames.org/"
     const val KARTVERKET = "https://www.kartverket.no/en/api-and-data"
     const val CC_BY = "https://creativecommons.org/licenses/by/4.0/"
 
-    val credits: List<String> = listOf(
-        SUNCALC, SUNCALC_LICENCE, INTER, OFL, JETPACK, KOTLIN, APACHE, DESUGAR, GPL_CE, LUCIDE,
-        LUCIDE_LICENCE, GEONAMES, KARTVERKET, CC_BY,
-    )
+    val credits: List<String> = listOf(SUNCALC, SUNCALC_LICENCE, GEONAMES, KARTVERKET, CC_BY)
 
     val all: List<String> = listOf(
         SITE, LINKEDIN, GITHUB, NOSTR, ONION, ORG_REGISTER, PRIVACY, DISCLAIMER,

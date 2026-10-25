@@ -22,7 +22,21 @@ Privacy-first solar-position calculator. SunApp computes precise sunrise, solar 
 - [SunCalc](https://github.com/mourner/suncalc) for solar position maths, bundled locally.
 - Browser `Intl` API for timezone-aware time formatting.
 - No third-party services. An earlier version called Open-Meteo to resolve raw coordinates to a timezone; that was replaced by an offline nearest-city lookup and the dependency is gone.
-- [Inter](https://rsms.me/inter/) typeface, locally hosted.
+- [Inter](https://rsms.me/inter/) typeface (OFL 1.1), locally hosted, and bundled in the Android app.
+
+## Credits and licences
+The footers of the web page and the Android app credit only the projects and data SunApp's function is built on: [SunCalc](https://github.com/mourner/suncalc) ([BSD 2-Clause](https://github.com/mourner/suncalc/blob/master/LICENSE)) for the solar maths, and the city data from [GeoNames](https://www.geonames.org/) and [Kartverket](https://www.kartverket.no/en/api-and-data) ([CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)). Everything else SunApp is built with is credited here and in [NOTICE](NOTICE), which keeps the full notices:
+
+| What | Used for | Licence |
+|---|---|---|
+| [SunCalc](https://github.com/mourner/suncalc) | Solar position maths, web and Android port | BSD 2-Clause |
+| [GeoNames](https://www.geonames.org/) and [Kartverket](https://www.kartverket.no/en/api-and-data) | The city catalogue | CC BY 4.0 |
+| [Inter](https://rsms.me/inter/) | Typeface, web and Android | OFL 1.1 |
+| [Lucide](https://github.com/lucide-icons/lucide) | LinkedIn and GitHub icons in the Android footer (the same marks are inline SVG in the web footer) | ISC |
+| [Kotlin](https://github.com/JetBrains/kotlin) | The Android app's programming language | Apache 2.0 |
+| [Jetpack](https://github.com/androidx/androidx) (AndroidX, Compose, Material 3) | The Android app's libraries | Apache 2.0 |
+| [Java time backport](https://github.com/google/desugar_jdk_libs) | `java.time` on Android 7, linked not modified | GPL 2.0 with Classpath Exception |
+| Browser `Intl` API | Time-zone-aware formatting on the web, built into the browser | n/a |
 
 ## Local development
 ```bash

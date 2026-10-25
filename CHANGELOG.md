@@ -5,7 +5,21 @@ Every released version of SunApp for Android, newest first. Each release's store
 here. The APKs, their `.sha256` files and their build provenance attestations are on the
 [releases page](https://github.com/StormberryAS/SunApp/releases).
 
-## 1.1.5 (versionCode 7)
+## 1.1.6 (versionCode 8), 24 October 2026
+
+The footer credits less, and only what matters. Nothing about how SunApp works changes: still nine
+install-time permissions for the alarm, none new, no location permission and no internet access.
+
+- **Credits:** the footer now names only the projects and data SunApp's function is built on: SunCalc's
+  formulae (BSD 2-Clause) and the city data from GeoNames and Kartverket (CC BY 4.0), each linked to its
+  source and its licence. The icons (Lucide), the programming language and libraries (Kotlin, Jetpack,
+  Material, the Java time backport) and the Inter typeface are no longer listed there; they are credited
+  in NOTICE and the README, with their licences. Each licence label now stays on one line.
+- **Website:** the footer no longer lists the browser's own Intl API next to SunCalc and GeoNames.
+- **Development only, not shipped:** the footer test now checks the shorter list and that NOTICE and
+  the README still document everything left out.
+
+## 1.1.5 (versionCode 7), 24 October 2026
 
 A new top and bottom for the Sun times screen, laid out like CheckLink's. How SunApp works does not
 change: still nine install-time permissions for the alarm, none new, no location permission and no

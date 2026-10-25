@@ -240,6 +240,20 @@ attestation, and creates the GitHub release. Zapstore publishing is separate:
 - **Dark theme only.** The palette is lifted from the web app's `style.css` and a
   light variant does not exist.
 
+## Credits
+
+The footer credits only what the app's function is built on: [SunCalc](https://github.com/mourner/suncalc)'s
+formulae (BSD 2-Clause) and the city data from [GeoNames](https://www.geonames.org/) and
+[Kartverket](https://www.kartverket.no/en/api-and-data) (CC BY 4.0). The rest is credited here and in
+[NOTICE](../NOTICE), not in the app:
+
+- the [Inter](https://rsms.me/inter/) typeface (OFL 1.1), bundled as four static instances;
+- the [Lucide](https://github.com/lucide-icons/lucide) LinkedIn and GitHub icons (ISC);
+- [Kotlin](https://github.com/JetBrains/kotlin) and the [Jetpack](https://github.com/androidx/androidx)
+  libraries, Compose and Material 3 included (Apache 2.0);
+- the [Java time backport](https://github.com/google/desugar_jdk_libs) that gives Android 7 `java.time`
+  (GPL 2.0 with Classpath Exception).
+
 ## Licence
 
 MIT, same as the rest of the repository.
