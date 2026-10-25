@@ -288,8 +288,8 @@ test('the footer says what the Android app footer says, word for word, bar two a
   // lines stay pinned, so neither side can change without this test noticing.
   const WEB_PRIVACY_LINE = 'Your places never leave this browser.';
   const WEB_PERMISSION_LINE = 'No cookies. No tracking. Every calculation runs in your browser.';
-  assert.equal(line(defined(/text = "(Your places and alarms[^"]*)"/.exec(kt)?.[1], 'app privacy line')), 'Your places and alarms never leave this device. Disconnect and try it.');
-  assert.equal(line(defined(/text = "(Alarm permissions only[^"]*)"/.exec(kt)?.[1], 'app permission line')), 'Alarm permissions only. No internet. No tracking.');
+  assert.equal(line(defined(consts.get('PRIVACY_ALARMS'), 'app privacy line')), 'Your places and alarms never leave this device. Disconnect and try it.');
+  assert.equal(line(defined(consts.get('PERMISSIONS_ALARMS'), 'app permission line')), 'Alarm permissions only. No internet. No tracking.');
 
   // The single lines: tagline, privacy, permissions, Privacy First, city list date, the closing line.
   const lines = [
