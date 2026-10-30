@@ -23,6 +23,7 @@ const ASSETS = [
     './switcher-icons/eco.svg',
     './switcher-icons/flare.svg',
     './switcher-icons/garden.svg',
+    './switcher-icons/gdpr.svg',
     './switcher-icons/labs.svg',
     './switcher-icons/metadata.svg',
     './switcher-icons/meteor.svg',
