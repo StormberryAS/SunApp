@@ -219,8 +219,12 @@ android {
         // Zapstore only offers an update when the version rises, and a Play package is built only
         // from a signed tag that shipped on GitHub Releases, so the switch ships in a release of
         // its own. Permissions: the same nine.
-        versionCode = 9
-        versionName = "1.1.7"
+        //
+        // 1.1.8 (code 10), 2026-10-30: the Sun times screen shows the Stormberry Labs carousel above
+        // the footer, as the website does; each card opens that app's website in the browser through
+        // an ACTION_VIEW intent. No new permission, no INTERNET. Play edition: 1.1.8, code 1010.
+        versionCode = 10
+        versionName = "1.1.8"
         // Play line, derived from the code above (see playVersionCodeOffset); same versionName.
         if (playBuild) {
             versionCode = playVersionCodeOffset + versionCode!!

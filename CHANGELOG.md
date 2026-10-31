@@ -5,7 +5,39 @@ Every released version of SunApp for Android, newest first. Each release's store
 here. The APKs, their `.sha256` files and their build provenance attestations are on the
 [releases page](https://github.com/StormberryAS/SunApp/releases).
 
-## 1.1.7 (versionCode 9)
+## 1.1.8 (versionCode 10)
+
+The Sun times screen now ends as the website does, with the Stormberry Labs carousel above the
+footer. How SunApp works does not change: still nine install-time permissions for the alarm, none
+new, no location permission and no internet access.
+
+- **Labs carousel:** "Explore the Stormberry Ecosystem", the row of Stormberry Labs apps the website
+  shows above its footer, now sits above the app's footer, in the same order as on the websites:
+  Stormberry Labs first, SunApp last. A card opens that app's website in your browser; the app itself
+  still cannot reach the network. The row slides slowly, and a visible "Pause the animation" box stops
+  it. With "Remove animations" on, or while TalkBack explores by touch, the row stands still and the
+  box is not shown. TalkBack offers each card as "open the website" and reads SunApp's own card as
+  "This app". The icons are drawn in the app from the website's own icon files, so nothing is
+  downloaded.
+- **Google Play edition:** 1.1.8 (code 1010) gets the same carousel. It still has no alarms and
+  declares no permission.
+- **Store text:** the description now spells Tromsø, Göteborg, Köln and Askøy with their own letters,
+  and gives the gap between a December sunrise and a June one at Askøy as five and a half hours, which
+  is what the app works out (5 h 36 min on the clock between 21 December and 21 June); it said nine and
+  a half. The store screenshots are taken again from the 1.1.8 build, and a fourth one shows the
+  carousel.
+- **Website:** the Android app section now reads "Android app: the same sun times on your phone. The
+  Zapstore version also has alarms set by the sun rather than the clock.", with one button for
+  Zapstore and one for Google Play; a screen reader hears that each opens in a new tab. The page
+  description for link previews says the alarms come with the Android app from Zapstore.
+- **Fixed in the log:** the 1.1.7 heading below now carries the date of its tag, 25 October 2026.
+- **Development only, not shipped:** four JVM tests for the carousel (the order and the addresses, the
+  motion rules, parity with the carousel in this repository's `index.html`, and the icons). The READMEs
+  list the carousel. `android/tools/check-play-bundle.sh` now reads the dex files itself: its old pipe
+  passed the alarm-class check even when an alarm class was there, and it now also requires exactly
+  one signer.
+
+## 1.1.7 (versionCode 9), 25 October 2026
 
 Nothing you use in this app changes: the same alarms, the same nine install-time permissions for them,
 none new, no location permission and no internet access. What changes is how SunApp is built.

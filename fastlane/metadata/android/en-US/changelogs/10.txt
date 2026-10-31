@@ -1,0 +1,1 @@
+1.1.8 adds the Stormberry Labs carousel above the footer, as on the website. A card opens that app's website in your browser; a box pauses the row, and it stands still when animations are off. Alarms do not change, and neither do the nine permissions: none new, and still no internet access. Full release log: https://github.com/StormberryAS/SunApp/blob/main/CHANGELOG.md

@@ -20,8 +20,8 @@ one sentence each in the repository README. Sun times need none of them, and no
 dialog appears until you create your first alarm.
 
 - Search 25,007 cities, accent-insensitive in both directions: "tromso" finds
-  Tromso with the slash, "Herat" finds the one with the macron. English
-  exonyms work too, so "Gothenburg" finds Goteborg and "Cologne" finds Koln.
+  Tromsø with the slash, "Herat" finds the one with the macron. English
+  exonyms work too, so "Gothenburg" finds Göteborg and "Cologne" finds Köln.
 - Every city carries its own IANA timezone. Times render in the place's zone,
   not your phone's.
 - Any date, past or future.
@@ -32,6 +32,6 @@ The same maths and the same catalogue run on the web at sun.stormberry.as, and
 the Kotlin port is tested against a golden corpus generated from the JavaScript
 one, so the two cannot silently disagree about when the sun comes up.
 
-Built by Stormberry AS in Askoy, Norway, where the gap between a December
-sunrise and a June one is nine and a half hours and the question stops being
+Built by Stormberry AS in Askøy, Norway, where the gap between a December
+sunrise and a June one is five and a half hours and the question stops being
 academic.

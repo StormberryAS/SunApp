@@ -521,7 +521,33 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 
 .android-app .btn {
   min-height: 44px;
+  max-width: 100%;
+  white-space: normal;
   text-decoration: none;
+}
+
+/* The two store buttons, Zapstore and Google Play: side by side when they fit,
+   one above the other on a narrow screen. */
+.store-links {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--sp-sm);
+  max-width: 100%;
+}
+
+/* Text for screen readers only, such as " (opens in a new tab)" on the store buttons. */
+.visually-hidden {
+  position: absolute !important;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
 }
 
 /* ── ERROR MESSAGE ──────────────────────────────────────────── */

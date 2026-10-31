@@ -51,6 +51,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import no.stormberry.labs.carousel.LabsApp
+import no.stormberry.labs.carousel.LabsCarousel
+import no.stormberry.labs.carousel.LabsCarouselColors
 import no.stormberry.sunapp.cities.City
 import no.stormberry.sunapp.cities.CityAssets
 import no.stormberry.sunapp.cities.CitySearch
@@ -301,6 +304,8 @@ fun SunTimesScreen(settings: Settings, modifier: Modifier = Modifier) {
 
                 Spacer(Modifier.height(40.dp))
             }
+            // The website's "Explore the Stormberry Ecosystem" carousel, above the footer as there.
+            LabsCarousel(current = LabsApp.SUN_APP, colors = CarouselColors)
             AppFooter()
         }
     }
@@ -754,3 +759,18 @@ private fun sunFieldValue(instant: Instant?, kind: DayKind, zone: ZoneId): SunFi
 private val CLOCK_FORMAT: DateTimeFormatter = DateTimeFormatter.ofPattern("HH:mm:ss", Locale.UK)
 private val DATE_FORMAT: DateTimeFormatter = DateTimeFormatter.ofPattern("EEEE, d MMMM yyyy", Locale.UK)
 private val ZONE_FORMAT: DateTimeFormatter = DateTimeFormatter.ofPattern("zzz", Locale.UK)
+
+/**
+ * The carousel in this app's colours, the custom properties sun.stormberry.as gives its
+ * carousel (style.css): --text-secondary for the heading and the tick box, --bg-card and
+ * --border for the cards, --accent-blue for the app's own card, --border above it.
+ */
+private val CarouselColors = LabsCarouselColors(
+    title = Sun.TextSecondary,
+    label = Sun.TextPrimary,
+    cardFill = Sun.Card,
+    cardBorder = Sun.Border,
+    accent = Sun.Blue,
+    rule = Sun.Border,
+    checkmark = Sun.Background,
+)

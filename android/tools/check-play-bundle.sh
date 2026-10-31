@@ -9,8 +9,8 @@
 #   - NO alarm component (activity, service, receiver, provider) in the bundle manifest
 #   - the only activity is MainActivity
 #   - NO alarm class in the dex (R8 deleted it with the code behind Edition.ALARMS)
-#   - signed by an upload key: its certificate is NOT the sovereign release certificate, and
-#     equals the given SHA-256 when one is given (hex, with or without colons)
+#   - signed by exactly one upload key: its certificate is NOT the sovereign release certificate,
+#     and equals the given SHA-256 when one is given (hex, with or without colons)
 # Read only: it writes nothing but a temporary directory it removes. Needs java (JAVA_HOME or PATH),
 # unzip and the bundletool jar (BUNDLETOOL, default ~/Android/tools/bundletool-all-1.18.3.jar).
 set -euo pipefail
@@ -52,7 +52,10 @@ acts="$(grep -oE '<activity[^>]*android:name="[^"]*"' "$T/manifest.xml" | sed -E
 printf '      components: %s\n' "$(paste -sd' ' "$T/components.txt")"
 
 unzip -q -o "$AAB" 'base/dex/*.dex' -d "$T/dex"
-if cat "$T"/dex/base/dex/*.dex | grep -a -q 'no/stormberry/sunapp/alarm/'; then
+# grep reads the dex files itself. The earlier 'cat ... | grep -q' failed open under pipefail: on a
+# match grep exits at once, cat dies of SIGPIPE, the pipeline returns 141 and the check said ok.
+ls "$T"/dex/base/dex/*.dex >/dev/null || bad "no dex in the bundle"
+if grep -a -q 'no/stormberry/sunapp/alarm/' "$T"/dex/base/dex/*.dex; then
   bad "the dex still holds classes from no/stormberry/sunapp/alarm/"
 else
   ok "no class from no/stormberry/sunapp/alarm/ in the dex"
@@ -62,7 +65,9 @@ SHA="$("$KEYTOOL" -printcert -jarfile "$AAB" 2>/dev/null | sed -n 's/^[[:space:]
 if [ -z "$SHA" ]; then
   bad "the bundle carries no signature"
 else
-  printf '      signing certificate SHA-256: %s\n' "$SHA"
+  signers="$(unzip -Z1 "$AAB" | grep -cE '^META-INF/[^/]+\.(RSA|EC|DSA)$' || true)"
+  printf '      signing certificate SHA-256: %s (signers: %s)\n' "$SHA" "$signers"
+  [ "$signers" = 1 ] && ok "exactly one signer" || bad "$signers signers"
   [ "$SHA" != "$RELEASE_CERT" ] && ok "not signed with the sovereign release key" || bad "SIGNED WITH THE SOVEREIGN RELEASE KEY: never upload this"
   if [ -n "$CERT" ]; then
     want="$(printf '%s' "$CERT" | tr -d ':' | tr 'A-F' 'a-f')"

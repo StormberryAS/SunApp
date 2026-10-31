@@ -6,7 +6,7 @@ Privacy-first solar-position calculator. SunApp computes precise sunrise, solar 
 
 ## Features
 - **City search**: rapid, offline autocomplete over 25,007 cities, accent-insensitive both ways (`tromso` finds Tromsø) and exonym-aware (`Gothenburg` finds Göteborg).
-- **Android app**: the same calculations as a native APK, with optional alarms anchored to solar events. [Get it on Zapstore](https://zapstore.dev/apps/no.stormberry.sunapp).
+- **Android app**: the same calculations as a native app, with the Stormberry Labs carousel above its footer, as on the website. The Zapstore version also has optional alarms anchored to solar events. [Get it on Zapstore](https://zapstore.dev/apps/no.stormberry.sunapp) or [on Google Play](https://play.google.com/store/apps/details?id=no.stormberry.sunapp.play).
 - **Manual GPS input**: find astronomical data for any arbitrary point on the globe. A decimal comma works as well as a point (`60,39` or `60.39`), and so does a typographic minus; anything out of range is refused with a message rather than computed.
 - **Time travel**: pick any date, past or future, to calculate historical or upcoming solar events.
 - **Polar edge cases**: displays "Midnight Sun" or "Polar Night" when applicable based on latitude and season.

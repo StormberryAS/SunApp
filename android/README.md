@@ -54,6 +54,9 @@ permission of any kind.
 - Any date, past or future.
 - Midnight Sun and Polar Night are detected geometrically and labelled, rather
   than shown as a blank or an error.
+- The Stormberry Labs carousel above the footer, as on the website, in both
+  editions: each card opens that app's website in your browser, so the app still
+  needs no internet permission.
 
 ## Permissions
 
@@ -251,7 +254,7 @@ PLAY_UPLOAD_STORE_PASSWORD="$(secret-tool lookup service android-keystore app su
 PLAY_UPLOAD_KEY_PASSWORD="$PLAY_UPLOAD_STORE_PASSWORD" \
   ./gradlew --no-configuration-cache :app:bundleRelease -PplayBuild=true
 # app/build/outputs/bundle/release/sunapp-play-release.aab
-tools/check-play-bundle.sh app/build/outputs/bundle/release/sunapp-play-release.aab 1.1.7 1009
+tools/check-play-bundle.sh app/build/outputs/bundle/release/sunapp-play-release.aab 1.1.8 1010
 ```
 
 `-PplayBuild=true` changes the application ID, the signing key, the version code, the source
@@ -275,6 +278,7 @@ respin Play from an untagged tree.
 | Sovereign tag | Sovereign version | Play version | Play code |
 |---|---|---|---|
 | `android-v1.1.7` | 1.1.7 (code 9) | 1.1.7 | 1009 |
+| `android-v1.1.8` | 1.1.8 (code 10) | 1.1.8 | 1010 |
 
 ### Releasing
 

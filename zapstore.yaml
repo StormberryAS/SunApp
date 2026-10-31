@@ -35,8 +35,8 @@ description: |
   dialog appears until you create your first alarm.
 
   - Search 25,007 cities, accent-insensitive in both directions: "tromso" finds
-    Tromso with the slash, "Herat" finds the one with the macron. English
-    exonyms work too, so "Gothenburg" finds Goteborg and "Cologne" finds Koln.
+    Tromsø with the slash, "Herat" finds the one with the macron. English
+    exonyms work too, so "Gothenburg" finds Göteborg and "Cologne" finds Köln.
   - Every city carries its own IANA timezone. Times render in the place's zone,
     not your phone's.
   - Any date, past or future.
@@ -47,8 +47,8 @@ description: |
   the Kotlin port is tested against a golden corpus generated from the JavaScript
   one, so the two cannot silently disagree about when the sun comes up.
 
-  Built by Stormberry AS in Askoy, Norway, where the gap between a December
-  sunrise and a June one is nine and a half hours and the question stops being
+  Built by Stormberry AS in Askøy, Norway, where the gap between a December
+  sunrise and a June one is five and a half hours and the question stops being
   academic.
 
 tags:
@@ -70,12 +70,15 @@ website: https://sun.stormberry.as
 # lives in fastlane/ for F-Droid.
 icon: ./fastlane/metadata/android/en-US/images/icon.png
 
-# Captured on an API 36 emulator at 1080x2400. zsp uploads these to Blossom and
-# references them from the kind 32267 app event.
+# Captured on an API 36 emulator at 1080x2400 from a release build, saved as
+# 256-colour palette PNGs under 250 KB: cdn.zapstore.dev refuses an image of about
+# 700 KB or more. zsp uploads these to Blossom and references them from the kind
+# 32267 app event.
 images:
   - ./android/screenshots/01-times.png
   - ./android/screenshots/02-alarms.png
   - ./android/screenshots/03-footer.png
+  - ./android/screenshots/04-carousel.png
 
 # No release_source: zsp pulls the APK straight from the GitHub release, so the
 # asset URL in the nostr event points at the same signed binary the release page
