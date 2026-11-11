@@ -10,7 +10,7 @@ Run from anywhere:   python3 update_cities.py [--dry-run] [--target N]
 It lives in SunApp/ rather than beside the patch_*.py scripts at the GitHub/
 root because that directory is not a repository: a canonical generator kept
 there would be untracked, unbacked-up and invisible on GitHub. It writes to
-all nine sibling apps regardless.
+all eleven apps regardless.
 
 The previous version had a hardcoded output path missing the /GitHub/
 segment, so it raised FileNotFoundError and had not been runnable for some
@@ -50,6 +50,7 @@ HERE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 APPS = [
     "SunApp", "MoonApp", "PhotoTimer", "TideTracker", "EcoCompass",
     "StarMap", "WeatherWhisper", "PlanetPulse", "SolarFlare",
+    "EclipseTracker", "MeteorWatch",
 ]
 
 # The Android build reads this asset. Committed rather than generated at build
@@ -320,7 +321,7 @@ def pack(rows, exonyms=None):
 def render_js(packed: str, count: int) -> str:
     """A classic script defining a global CITIES.
 
-    Deliberately NOT an ES module. Six of the nine apps load app.js as a plain
+    Deliberately NOT an ES module. Most of the eleven apps load app.js as a plain
     script, so a module export would break them. `var` puts the binding on
     globalThis, which a `type="module"` script can also read, so StarMap works
     from the same file.

@@ -12,7 +12,7 @@ import java.util.Locale
  * Parser tests against the real 25,007-row catalogue.
  *
  * These are the tests that fail when `update_cities.py` changes shape, which is
- * the only way this app finds out. The generator writes to nine sibling apps
+ * the only way this app finds out. The generator writes to ten sibling apps
  * and none of them would notice a seventh column becoming an eighth.
  */
 class CityTableTest {

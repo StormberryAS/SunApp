@@ -19,7 +19,7 @@ object CityAssets {
      * The file is not checked in under `app/src/main/assets/`. It is copied
      * there at build time by the `copyCityData` Gradle task from
      * `SunApp/data/cities.tsv`, which is the single source of truth shared with
-     * the web app and the eight sibling Labs apps. Duplicating it here would
+     * the web app and the ten sibling Labs apps. Duplicating it here would
      * guarantee the two drift.
      */
     private const val ASSET_PATH = "data/cities.tsv"

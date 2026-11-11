@@ -129,7 +129,7 @@ class CityTable(val cities: List<City>) {
             // The seventh field arrived with the English-exonym pass. A file
             // written before it simply ends after tzIdx, and an empty alt is
             // exactly what such a row means, so accept both rather than force
-            // a lockstep regeneration of nine apps.
+            // a lockstep regeneration of eleven apps.
             val t6 = line.indexOf('\t', t5 + 1)
             val tzEnd = if (t6 < 0) line.length else t6
 
